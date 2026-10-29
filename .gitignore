@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+logs/
+assets/generated/frames/
+output/*.tmp*
+output/preview_frames/
+*.blend1
