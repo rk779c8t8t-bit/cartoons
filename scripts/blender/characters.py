@@ -266,7 +266,6 @@ class Actor:
                 p = geo.box(n + "_patch", (0.085, y, 0.22), (0.05, 0.012, 0.045), M["clothpatch"], J["spine"], rot=(0.25, 0.1, -0.5), bevel=0.005)
                 P["patch"] = p
             # hem
-            P["hem"] = geo.torus(n + "_hem", (0, 0, -0.04), 0.15, 0.02, M["cloth"], J["spine"], scale=(1.08, 0.9, 1))
         else:
             if o.get("buttons"):
                 for i, z in enumerate((0.13, 0.05) if o["kind"] == "vest" else (0.26,)):
@@ -302,16 +301,16 @@ class Actor:
             geo.torus(f"{n}_cuff_{side}", (0, 0, -0.135), 0.042, 0.014, M["sleeve"] if o["kind"] == "jacket" else M["sleeve"], ej)
             hj = geo.empty(f"{n}_hand_{side}", (0, 0, -0.17), ej)
             J["hand_" + side] = hj
-            geo.sphere(f"{n}_paw_{side}", (0, -0.005, 0), (0.05, 0.045, 0.055), M["fur"] if self.cid != "raccoon" else M["mask"], hj)
+            geo.sphere(f"{n}_paw_{side}", (0, -0.005, 0), (0.05, 0.045, 0.055), M["furhead"] if self.cid != "raccoon" else M["mask"], hj)
             # little thumb
-            geo.sphere(f"{n}_thumb_{side}", (-0.03 * sx, -0.03, 0.01), (0.02, 0.02, 0.025), M["fur"] if self.cid != "raccoon" else M["mask"], hj)
+            geo.sphere(f"{n}_thumb_{side}", (-0.03 * sx, -0.03, 0.01), (0.02, 0.02, 0.025), M["furhead"] if self.cid != "raccoon" else M["mask"], hj)
 
         # ---- legs
         s = d["shoes"]
         for side, sx in (("L", 1), ("R", -1)):
             lj = geo.empty(f"{n}_leg_{side}", (0.078 * sx, 0, 0.02), J["hips"])
             J["leg_" + side] = lj
-            legm = M["fur"] if o["kind"] == "jacket" else (M["cloth_main"])
+            legm = M["furhead"] if o["kind"] == "jacket" else (M["cloth_main"])
             geo.sphere(f"{n}_thigh_{side}", (0, 0, -0.1), (0.065, 0.065, 0.12), legm, lj)
             kj = geo.empty(f"{n}_knee_{side}", (0, 0, -0.17), lj)
             J["knee_" + side] = kj
@@ -455,7 +454,7 @@ class Actor:
             # upper lash line (gives the eye a defined, appealing shape)
             lash = [(-er * 0.95, -er * 0.25, er * 0.45), (-er * 0.5, -er * 0.78, er * 0.95), (0, -er * 0.92, er * 1.08),
                     (er * 0.5, -er * 0.78, er * 0.95), (er * 0.98 * sx if False else er * 0.98, -er * 0.25, er * 0.5)]
-            geo.tube(f"{n}_lash_{side}", lash, [er * 0.06, er * 0.09, er * 0.1, er * 0.09, er * 0.05], M["lash"], bj, ring=8)
+            geo.tube(f"{n}_lash_{side}", lash, [er * 0.04, er * 0.06, er * 0.065, er * 0.06, er * 0.035], M["lash"], bj, ring=8)
             # brows
             bj2 = geo.empty(f"{n}_browj_{side}", (x * 0.95, _ell_surface_y(hc, hr, x * 0.95, ez + er * 1.6) + 0.006, ez + er * 1.6), H)
             J["brow_" + side] = bj2
@@ -632,7 +631,7 @@ class Actor:
         r.rotation_euler = (0, 0, s["rot"] * D2R)
         J["hips"].location = (0, 0, 0.30 + s["hips_z"])
         J["hips"].rotation_euler = (s["hips_rx"] * D2R, s["hips_ry"] * D2R, 0)
-        J["spine"].rotation_euler = (-s["spine_rx"] * D2R, s["spine_ry"] * D2R, s["spine_rz"] * D2R)
+        J["spine"].rotation_euler = (s["spine_rx"] * D2R, s["spine_ry"] * D2R, s["spine_rz"] * D2R)
         J["head"].rotation_euler = (s["head_rx"] * D2R, s["head_ry"] * D2R, s["head_rz"] * D2R)
         for side, sx in (("L", 1), ("R", -1)):
             J["sh_" + side].rotation_euler = (-s[f"sh_{side}_x"] * D2R, -sx * s[f"sh_{side}_y"] * D2R, sx * s[f"sh_{side}_z"] * D2R)
@@ -700,6 +699,67 @@ class Actor:
             for kb in t.data.shape_keys.key_blocks[1:]:
                 kb.keyframe_insert("value", frame=frame)
 
+    def _targets(self, ch):
+        J = self.j
+        T = []
+        if ch in ("x", "y", "lift"):
+            T.append((J["root"], "location", "xyl".index(ch[0]) if ch != "lift" else 2))
+        elif ch == "rot":
+            T.append((J["root"], "rotation_euler", 2))
+        elif ch == "hips_z":
+            T.append((J["hips"], "location", 2))
+        elif ch in ("hips_rx", "hips_ry"):
+            T.append((J["hips"], "rotation_euler", 0 if ch.endswith("x") else 1))
+        elif ch.startswith("spine_") or ch.startswith("head_"):
+            T.append((J[ch.split("_")[0]], "rotation_euler", "xyz".index(ch[-1])))
+        elif ch.startswith("sh_"):
+            side = ch[3]
+            T.append((J["sh_" + side], "rotation_euler", "xyz".index(ch[-1])))
+        elif ch.startswith("el_"):
+            T.append((J[ch], "rotation_euler", 0))
+        elif ch.startswith("leg_"):
+            side = ch[4]
+            T.append((J["leg_" + side], "rotation_euler", "xyz".index(ch[-1])))
+            T.append((J["foot_" + side], "rotation_euler", 0))
+        elif ch.startswith("knee_"):
+            T.append((J[ch], "rotation_euler", 0))
+            T.append((J["foot_" + ch[-1]], "rotation_euler", 0))
+        elif ch.startswith("ear_"):
+            T += [(J[ch], "rotation_euler", i) for i in range(3)]
+        elif ch.startswith("gaze_"):
+            T += [(J["gaze_" + sd], "rotation_euler", i) for sd in "LR" for i in (0, 2)]
+        elif ch == "eyes_open":
+            T += [(J["eye_" + sd], "scale", 2) for sd in "LR"]
+        elif ch in ("brow", "brow_h"):
+            T += [(J["brow_" + sd], "rotation_euler", 1) for sd in "LR"] + [(J["brow_" + sd], "location", 2) for sd in "LR"]
+        elif ch in ("smile", "frown"):
+            T.append((self.parts["mouth"].data.shape_keys.key_blocks[ch], "value", -1))
+        elif ch == "mouth_open":
+            T += [(J["mopen"], "scale", i) for i in range(3)]
+        elif ch.startswith("tail_"):
+            t = self.parts.get("tail")
+            if t is not None:
+                T += [(kb, "value", -1) for kb in t.data.shape_keys.key_blocks[1:]]
+        return T
+
+    def key_only(self, frame, **ch):
+        """Key only the given channels (safe to call out of chronological order, e.g. during a walk)."""
+        st = dict(self.state)
+        st.update(ch)
+        self.apply_state(st)
+        for c in ch:
+            for ob, path, idx in self._targets(c):
+                if idx < 0:
+                    ob.keyframe_insert(path, frame=frame)
+                else:
+                    ob.keyframe_insert(path, index=idx, frame=frame)
+        self.apply_state()
+
+    def hold_only(self, f0, f1, **ch):
+        """Key the channels at both ends of a span (keeps a look/expression during other motion)."""
+        self.key_only(f0, **ch)
+        self.key_only(f1, **ch)
+
     def key(self, frame, **ch):
         for k, v in ch.items():
             if k not in self.state:
@@ -759,7 +819,7 @@ class Actor:
                             head_rx=base["head_rx"])
                 self.key(round(f), **cont)
             else:
-                self.key_tmp(round(f), **cont)
+                self.key_only(round(f), **cont)
                 # passing pose between contacts: body up, knee bent on swing leg
                 if i < n:
                     fp = f + stepf / 2
@@ -769,7 +829,7 @@ class Actor:
                                knee_L=(35 if run else 22) * ramp if ph > 0 else 0, knee_R=(35 if run else 22) * ramp if ph < 0 else 0,
                                sh_L_x=base["sh_L_x"], sh_R_x=base["sh_R_x"],
                                hips_z=(0.02 if run else 0.008) * ramp, spine_rz=0.0)
-                    self.key_tmp(round(fp), **pas)
+                    self.key_only(round(fp), **pas)
         self.state.update(x=x1, y=y1, rot=rot)
         return f1
 
@@ -782,7 +842,7 @@ class Actor:
             ch = dict(hips_z=0.008 if up else -0.004, spine_rx=self.state["spine_rx"] + (4 if up else 0),
                       head_rx=self.state["head_rx"] + (-8 if up else -3), mouth_open=0.75 if up else 0.4,
                       eyes_open=0.55, smile=1.0, brow=-0.2)
-            self.key_tmp(f, **ch)
+            self.key_only(f, **ch)
             f += period
             i += 1
 
@@ -798,10 +858,10 @@ class Actor:
         f = f0
         i = 0
         while f <= f1:
-            self.key_tmp(f, tail_side=amp if i % 2 == 0 else -amp)
+            self.key_only(f, tail_side=amp if i % 2 == 0 else -amp)
             f += period
             i += 1
-        self.key(f1 + period)
+        self.key_only(f1 + period, tail_side=self.state["tail_side"])
 
     def add_life(self, strength=1.0, seed=0):
         """Subtle procedural idle noise (breathing / micro head motion)."""

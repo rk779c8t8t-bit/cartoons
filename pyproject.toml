@@ -1,0 +1,9 @@
+[project]
+name = "kitten-short"
+version = "1.0.0"
+description = "«Над котёнком все смеялись» — procedural 3D animated vertical short (Blender EEVEE + FFmpeg)"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.26", "scipy>=1.11", "Pillow>=10", "PyYAML>=6"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

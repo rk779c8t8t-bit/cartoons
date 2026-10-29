@@ -7,7 +7,7 @@ from mats import hexc
 
 
 class Umbrella:
-    def __init__(self, name="umbrella", color="#ffcf1f"):
+    def __init__(self, name="umbrella", color="#ffbf00"):
         self.M = mats.fabric(name + "_canvas", hexc(color), rough=0.55, weave=60)
         self.Mh = mats.basic(name + "_handle", hexc("#5a3a22"), rough=0.4, coat=0.5)
         self.Mt = mats.basic(name + "_tip", hexc("#d9d4c8"), rough=0.3, metal=0.6)

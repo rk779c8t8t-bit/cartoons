@@ -67,7 +67,7 @@ class Env:
         tc = nt.nodes.new("ShaderNodeTexCoord")
         v = nt.nodes.new("ShaderNodeTexVoronoi")
         v.feature = "DISTANCE_TO_EDGE"
-        v.inputs["Scale"].default_value = 4.0
+        v.inputs["Scale"].default_value = 5.0
         nt.links.new(tc.outputs["Object"], v.inputs["Vector"])
         ramp = nt.nodes.new("ShaderNodeValToRGB")
         ramp.color_ramp.elements[0].position = 0.0
@@ -86,10 +86,13 @@ class Env:
         nt.links.new(nz.outputs["Color"], mix.inputs[7])
         nt.links.new(mix.outputs[2], b.inputs["Base Color"])
         bump = nt.nodes.new("ShaderNodeBump")
-        bump.inputs["Strength"].default_value = 0.6
-        nt.links.new(v.outputs["Distance"], bump.inputs["Height"])
+        bump.inputs["Strength"].default_value = 0.5
+        mr = nt.nodes.new("ShaderNodeMapRange")
+        mr.inputs["From Max"].default_value = 0.04
+        nt.links.new(v.outputs["Distance"], mr.inputs["Value"])
+        nt.links.new(mr.outputs["Result"], bump.inputs["Height"])
         nt.links.new(bump.outputs["Normal"], b.inputs["Normal"])
-        b.inputs["Roughness"].default_value = 0.75 if not wet else 0.18
+        b.inputs["Roughness"].default_value = 0.75 if not wet else 0.38
         b.inputs["Specular IOR Level"].default_value = 0.5
         return m
 
@@ -111,7 +114,7 @@ class Env:
         bump.inputs["Strength"].default_value = 0.4
         nt.links.new(bt.outputs["Fac"], bump.inputs["Height"])
         nt.links.new(bump.outputs["Normal"], b.inputs["Normal"])
-        b.inputs["Roughness"].default_value = 0.6 if not self.wet else 0.25
+        b.inputs["Roughness"].default_value = 0.6 if not self.wet else 0.5
         return m
 
     def _bark(self):
@@ -454,7 +457,7 @@ class Env:
     def puddles(self):
         M = self.M
         rr = random.Random(3)
-        spots = [(0.4, -8.6, 0.9, 0.5), (-0.5, -10.5, 0.7, 0.4), (0.2, -3.0, 0.6, 0.35), (-0.3, 1.0, 0.8, 0.45), (3.5, 8.0, 1.1, 0.6), (-2.5, 6.5, 0.9, 0.5), (0.6, 9.2, 0.7, 0.4), (4.9, 10.3, 0.7, 0.35)]
+        spots = [(-0.4, -12.6, 0.9, 0.5), (-0.5, -10.5, 0.7, 0.4), (0.2, -3.0, 0.6, 0.35), (-0.6, 0.6, 0.55, 0.3), (3.5, 8.0, 1.1, 0.6), (-2.5, 6.5, 0.9, 0.5), (0.6, 9.2, 0.7, 0.4), (4.9, 10.3, 0.7, 0.35)]
         for i, (x, y, a, b) in enumerate(spots):
             p = geo.sphere(f"puddle{i}", (x, y, 0.021), (a, b, 0.002), M["water"], seg=32, rings=8)
             self.objs[f"puddle{i}"] = p

@@ -1,0 +1,31 @@
+title: "Над котёнком все смеялись"
+video:
+  width: 1080
+  height: 1920
+  fps: 30
+  duration_s: 36
+  min_duration_s: 30
+  max_duration_s: 40
+render:
+  engine: BLENDER_EEVEE        # Blender 4.0 (Ubuntu package), software OpenGL, CPU only
+  samples: 10                  # EEVEE TAA samples per frame
+  resolution_percent: 100
+  workers: 2                   # parallel Blender processes
+paths:
+  frames: assets/generated/frames
+  preview_frames: output/preview_frames
+  audio: assets/audio
+  final: output/final_short.mp4
+  preview: output/preview.mp4
+# Shot list. frames = length on the timeline; tail = extra frames rendered for a dissolve into the next shot.
+# NB: tails must stay in sync with TAIL in scripts/blender/scenes.py
+shots:
+  - {id: 1, name: "Знакомство с героем", frames: 120, tail: 0,  transition: cut}
+  - {id: 2, name: "Насмешки",            frames: 120, tail: 10, transition: dissolve}
+  - {id: 3, name: "Появление друга",     frames: 120, tail: 12, transition: dissolve}
+  - {id: 4, name: "Опасность",           frames: 120, tail: 0,  transition: cut}
+  - {id: 5, name: "Решение Рыжика",      frames: 120, tail: 0,  transition: cut}
+  - {id: 6, name: "Спасение",            frames: 120, tail: 0,  transition: cut}
+  - {id: 7, name: "Осознание",           frames: 120, tail: 8,  transition: dissolve}
+  - {id: 8, name: "Примирение",          frames: 120, tail: 12, transition: dissolve}
+  - {id: 9, name: "Финал",               frames: 120, tail: 0,  transition: none}
