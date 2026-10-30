@@ -1,0 +1,155 @@
+{
+  "file": "/home/user/cartoons/output/final_short.mp4",
+  "checks": [
+    {
+      "name": "MP4 exists",
+      "ok": true,
+      "detail": "/home/user/cartoons/output/final_short.mp4",
+      "hard": true
+    },
+    {
+      "name": "file not empty",
+      "ok": true,
+      "detail": "31.00 MB",
+      "hard": true
+    },
+    {
+      "name": "ffprobe reads file",
+      "ok": true,
+      "detail": "",
+      "hard": true
+    },
+    {
+      "name": "video stream present",
+      "ok": true,
+      "detail": "",
+      "hard": true
+    },
+    {
+      "name": "audio stream present",
+      "ok": true,
+      "detail": "",
+      "hard": true
+    },
+    {
+      "name": "resolution 1080x1920",
+      "ok": true,
+      "detail": "1080x1920",
+      "hard": true
+    },
+    {
+      "name": "aspect 9:16",
+      "ok": true,
+      "detail": "0.5625",
+      "hard": true
+    },
+    {
+      "name": "FPS 30",
+      "ok": true,
+      "detail": "30.000",
+      "hard": true
+    },
+    {
+      "name": "duration 30-40 s",
+      "ok": true,
+      "detail": "36.000 s",
+      "hard": true
+    },
+    {
+      "name": "video codec H.264",
+      "ok": true,
+      "detail": "h264 High yuv420p",
+      "hard": true
+    },
+    {
+      "name": "audio codec AAC",
+      "ok": true,
+      "detail": "aac 48000 Hz 2 ch",
+      "hard": true
+    },
+    {
+      "name": "audio/video durations match (sync)",
+      "ok": true,
+      "detail": "video 36.000s / audio 36.000s",
+      "hard": true
+    },
+    {
+      "name": "frame count = 1080",
+      "ok": true,
+      "detail": "1080 frames",
+      "hard": false
+    },
+    {
+      "name": "no black frames",
+      "ok": true,
+      "detail": "0 black segments",
+      "hard": true
+    },
+    {
+      "name": "no frozen/paused segments >0.8 s",
+      "ok": true,
+      "detail": "0 found []",
+      "hard": false
+    },
+    {
+      "name": "loudness ~ -14 LUFS (YouTube)",
+      "ok": true,
+      "detail": "-14.7 LUFS",
+      "hard": true
+    },
+    {
+      "name": "no clipping (true peak <= -1 dBTP)",
+      "ok": true,
+      "detail": "-1.1 dBTP",
+      "hard": true
+    },
+    {
+      "name": "no silent gaps > 0.7 s",
+      "ok": true,
+      "detail": "[]",
+      "hard": false
+    },
+    {
+      "name": "all 9 scenes present (8 cuts detected at 4 s marks)",
+      "ok": true,
+      "detail": "diffs [39.5, 42.2, 43.8, 47.5, 42.9, 39.7, 40.4, 41.9]",
+      "hard": false
+    },
+    {
+      "name": "visible action in every scene",
+      "ok": true,
+      "detail": "mean frame diff/0.2s [13.31, 14.31, 14.4, 10.4, 9.59, 12.21, 15.56, 7.58, 14.33]",
+      "hard": true
+    },
+    {
+      "name": "no flicker (adjacent-frame luminance jump < 12)",
+      "ok": true,
+      "detail": "max 6.57",
+      "hard": false
+    }
+  ],
+  "info": {
+    "boundary_diffs": [
+      39.5,
+      42.2,
+      43.8,
+      47.5,
+      42.9,
+      39.7,
+      40.4,
+      41.9
+    ],
+    "motion_per_scene": [
+      13.31,
+      14.31,
+      14.4,
+      10.4,
+      9.59,
+      12.21,
+      15.56,
+      7.58,
+      14.33
+    ],
+    "contact_sheet": "/home/user/cartoons/output/contact_sheet.png"
+  }
+}
