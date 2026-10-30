@@ -6,3 +6,4 @@ assets/generated/frames/
 output/*.tmp*
 output/preview_frames/
 *.blend1
+output/mix.wav

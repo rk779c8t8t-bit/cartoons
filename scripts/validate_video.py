@@ -109,7 +109,7 @@ def main():
             if os.path.exists(p2):
                 others.append(float(np.mean(np.abs(fr - np.asarray(Image.open(p2).convert("RGB").resize((270, 480)), np.float32)))))
         best_other = min(others) if others else 999
-        ok = own < best_other and own < 12
+        ok = own < 0.6 * best_other  # must match its own render far better than any other shot
         order_ok &= ok
         if fr.std() < 8:
             empty.append(s["id"])
