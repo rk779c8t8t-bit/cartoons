@@ -1,0 +1,53 @@
+{
+  "time": "2026-10-30 10:31:04",
+  "os": "Linux 6.18.44-fc-v185 (x86_64)",
+  "python": "3.13.17",
+  "node": "v22.22.0",
+  "ffmpeg": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers",
+  "ffprobe": "ffprobe version 6.1.1-3ubuntu5 Copyright (c) 2007-2023 the FFmpeg developers",
+  "gpu": "none (no nvidia-smi)",
+  "cpu_cores": 4,
+  "ram_gb": 15.7,
+  "disk_free_gb": 30.1,
+  "python_libs": {
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "PIL": "12.3.0",
+    "bpy": "5.2.3 LTS",
+    "torch": "missing",
+    "diffusers": "missing",
+    "cv2": "missing",
+    "moviepy": "missing",
+    "pytest": "missing"
+  },
+  "imagemagick": "present",
+  "blender_cli": "missing (using pip bpy module instead)",
+  "api_keys": {
+    "OPENAI_API_KEY": "not set",
+    "REPLICATE_API_TOKEN": "not set",
+    "RUNWAYML_API_SECRET": "not set",
+    "LUMAAI_API_KEY": "not set",
+    "FAL_KEY": "not set",
+    "STABILITY_API_KEY": "not set",
+    "GEMINI_API_KEY": "not set",
+    "GOOGLE_API_KEY": "not set",
+    "KLING_API_KEY": "not set",
+    "ELEVENLABS_API_KEY": "not set",
+    "HF_TOKEN": "not set"
+  },
+  "api_reachability": {
+    "OpenAI (gpt-image / Sora video)": "blocked/unreachable",
+    "Replicate (SDXL, Flux, video models)": "blocked/unreachable",
+    "Runway (Gen-3/Gen-4 image-to-video)": "blocked/unreachable",
+    "Luma Dream Machine": "blocked/unreachable",
+    "fal.ai (Flux, Kling, Veo...)": "blocked/unreachable",
+    "Stability AI": "blocked/unreachable",
+    "Google Gemini / Veo": "reachable (HTTP 404)",
+    "Kling AI": "blocked/unreachable",
+    "ElevenLabs (SFX/music)": "blocked/unreachable",
+    "Hugging Face (model downloads)": "blocked/unreachable"
+  },
+  "pypi_reachable": "reachable (HTTP 200)",
+  "usable_ai_generators": [],
+  "strategy": "PRIORITY 4 fallback: procedural 3D animation rendered with Blender Cycles (bpy), synthesized music/SFX (numpy/scipy), assembled with FFmpeg"
+}

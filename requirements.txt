@@ -1,0 +1,7 @@
+# Python 3.13 (bpy 5.2 wheels are built for CPython 3.13)
+bpy==5.2.3          # Blender as a Python module (Cycles renderer), ~400 MB
+numpy>=2.0
+scipy>=1.13
+Pillow>=10
+pytest>=8           # tests only
+# System tools: ffmpeg + ffprobe (apt install ffmpeg), imagemagick (optional, for montage sheets)

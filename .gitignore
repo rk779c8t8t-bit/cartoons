@@ -1,0 +1,10 @@
+# secrets
+.env
+# heavy intermediate renders (re-creatable with run.py)
+assets/generated/frames/
+assets/generated/draft/
+assets/generated/keyframes/
+__pycache__/
+*.pyc
+.pytest_cache/
+logs/*.log
