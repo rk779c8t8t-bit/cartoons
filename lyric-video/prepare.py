@@ -55,25 +55,14 @@ thr = np.percentile(oenv[kf], 45)
 kicks = librosa.frames_to_time([k for k in kf if oenv[k] > thr], sr=sr).round(3).tolist()
 
 # ---------- текст ----------
-asr = json.load(open(asr_path))
+asr_all = [json.load(open(p)) for p in asr_path.split(",")]
+asr = asr_all[0]
 aw = [w for s in asr for w in s["words"]]
 
 def norm(s):
     return re.sub(r"[^a-zа-яё0-9]", "", s.lower().replace("ё", "е"))
 
-if lyrics_path:
-    raw = [l.strip() for l in open(lyrics_path, encoding="utf-8")]
-    blocks, cur = [], []
-    lines = []
-    section_marks = {}
-    for l in raw:
-        m = re.match(r"^\[(.+)\]$", l)
-        if m:
-            section_marks[len(lines)] = m.group(1).lower()
-            continue
-        if l:
-            lines.append(l.split())
-    # посимвольное выравнивание текста по распознанным словам
+def align(flat, aw):
     a_chars, a_time = [], []
     for w in aw:
         c = norm(w["w"])
@@ -81,8 +70,7 @@ if lyrics_path:
             a_chars.append(ch)
             a_time.append(w["s"] + (w["e"] - w["s"]) * i / max(1, len(c)))
     l_chars, l_owner = [], []
-    flat = [(li, wi, w) for li, ws in enumerate(lines) for wi, w in enumerate(ws)]
-    for k, (_, _, w) in enumerate(flat):
+    for k, w in enumerate(flat):
         for ch in norm(w):
             l_chars.append(ch)
             l_owner.append(k)
@@ -91,8 +79,47 @@ if lyrics_path:
     for b in sm.get_matching_blocks():
         for j in range(b.size):
             times[l_owner[b.a + j]].append(a_time[b.b + j])
-    st = [min(t) if t else None for t in times]
-    # пропуски — интерполяция между соседями
+    # слово считаем найденным, если совпала хотя бы половина букв
+    return [min(t) if t and len(t) >= max(1, (len(norm(flat[i])) + 1) // 2) else None for i, t in enumerate(times)]
+
+if lyrics_path:
+    lines, sections = [], []
+    for l in open(lyrics_path, encoding="utf-8"):
+        l = l.strip()
+        if not l or l.startswith("#"):
+            continue
+        m = re.match(r"^\[([^|\]]+)\|?([^\]]*)\]$", l)
+        if m:
+            sections.append({"line": len(lines), "type": m.group(1).strip(), "artist": m.group(2).strip()})
+            continue
+        # бэк-вокал в скобках отделяем от основной партии
+        main, adl, depth, buf = [], [], 0, ""
+        for tok in re.findall(r"\(|\)|[^\s()]+", l):
+            if tok == "(":
+                depth += 1; buf = ""; continue
+            if tok == ")":
+                depth -= 1; adl.append({"w": buf.strip(), "after": len(main) - 1}); continue
+            if depth:
+                buf += " " + tok
+            elif re.search(r"[\w]", tok):
+                main.append(tok)
+            elif main:
+                main[-1] += tok  # тире/многоточие приклеиваем к слову
+        lines.append({"main": main, "adlibs": adl})
+    flat = [w for L in lines for w in L["main"]]
+    passes = [align(flat, [w for seg in A for w in seg["words"]]) for A in asr_all]
+    st = []
+    for i in range(len(flat)):
+        c = [p[i] for p in passes if p[i] is not None]
+        if not c:
+            st.append(None)
+        elif len(c) == 1 or max(c) - min(c) < 0.6:
+            st.append(min(c))  # лучше на долю секунды раньше, чем позже
+        else:
+            # конфликт: берём вариант, согласованный с соседями
+            prev = next((x for x in reversed(st) if x is not None), 0)
+            ok = [x for x in c if x >= prev]
+            st.append(min(ok) if ok else max(c))
     known = [i for i, v in enumerate(st) if v is not None]
     for i in range(len(st)):
         if st[i] is None:
@@ -105,17 +132,27 @@ if lyrics_path:
             else:
                 st[i] = st[prev] + (st[nxt] - st[prev]) * (i - prev) / (nxt - prev)
     for i in range(1, len(st)):
-        st[i] = max(st[i], st[i - 1] + 0.04)
-    out_lines = []
-    k = 0
-    for li, ws in enumerate(lines):
+        st[i] = max(st[i], st[i - 1] + 0.06)
+    # ручные правки таймингов там, где распознавание не услышало слова
+    import os
+    fx = json.load(open("timing_fixes.json")) if os.path.exists("timing_fixes.json") else []
+    k = 0; seen = {}
+    for L in lines:
+        txt = " ".join(L["main"]); occ = seen.get(txt, 0); seen[txt] = occ + 1
+        for f in fx:
+            if f["line"].replace(" ", "") == txt.replace(" ", "") and f["occ"] == occ:
+                for j, tv in enumerate(f["times"][:len(L["main"])]):
+                    st[k + j] = tv
+        k += len(L["main"])
+    out_lines, k = [], 0
+    for L in lines:
         words = []
-        for w in ws:
-            words.append({"w": w, "s": round(st[k], 3)})
-            k += 1
-        out_lines.append({"words": words, "tag": section_marks.get(li)})
+        for w in L["main"]:
+            words.append({"w": w, "s": round(st[k], 3)}); k += 1
+        out_lines.append({"words": words, "adlibs": L["adlibs"]})
 else:
-    out_lines = [{"words": [{"w": w["w"].strip(), "s": round(w["s"], 3)} for w in s["words"]], "tag": None}
+    sections = []
+    out_lines = [{"words": [{"w": w["w"].strip(), "s": round(w["s"], 3)} for w in s["words"]], "adlibs": []}
                  for s in asr]
 
 # конец каждой строки: начало следующей (но не дольше 2.2с после последнего слова)
@@ -126,8 +163,12 @@ for i, l in enumerate(out_lines):
     l["e"] = round(min(nxt - 0.05, last + 2.2), 3)
     for j, w in enumerate(l["words"]):
         w["e"] = l["words"][j + 1]["s"] if j + 1 < len(l["words"]) else round(min(l["e"], w["s"] + 0.6), 3)
+    for ad in l["adlibs"]:
+        base = l["words"][ad["after"]] if ad["after"] >= 0 else l["words"][0]
+        ad["s"] = round(min(base["s"] + 0.45, l["e"] - 0.3), 3) if ad["after"] < len(l["words"]) - 1 else round(min(last + 0.55, l["e"] - 0.25), 3)
 
 data = {"fps": FPS, "dur": round(dur, 3), "tempo": float(np.atleast_1d(tempo)[0]),
-        "beats": beats, "kicks": kicks, "env": env, "lines": out_lines}
+        "beats": beats, "kicks": kicks, "env": env, "lines": out_lines,
+        "sections": [dict(sec, s=out_lines[sec["line"]]["words"][0]["s"]) for sec in sections]}
 open("build/data.js", "w").write("window.DATA=" + json.dumps(data, ensure_ascii=False) + ";")
 print(f"dur={dur:.2f}s frames={n} tempo={data['tempo']:.1f} beats={len(beats)} kicks={len(kicks)} lines={len(out_lines)}")

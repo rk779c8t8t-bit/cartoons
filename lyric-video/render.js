@@ -24,7 +24,7 @@ async function open() {
   }
   const [out, s, e] = [a[0], +a[1], +a[2]];
   const ff = spawn("ffmpeg", ["-v", "error", "-y", "-f", "image2pipe", "-c:v", "mjpeg", "-framerate", "30", "-i", "-",
-    "-c:v", "libx264", "-preset", "medium", "-crf", "16", "-pix_fmt", "yuv420p", "-r", "30", out], { stdio: ["pipe", "inherit", "inherit"] });
+    "-c:v", "libx264", "-preset", "medium", "-crf", "17", "-pix_fmt", "yuv420p", "-r", "30", out], { stdio: ["pipe", "inherit", "inherit"] });
   const t0 = Date.now();
   for (let f = s; f < e; f++) {
     await page.evaluate(f => window.renderFrame(f), f);
