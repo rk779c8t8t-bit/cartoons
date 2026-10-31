@@ -16,6 +16,6 @@ for ((j=0;j<JOBS;j++)); do
 done
 wait
 ffmpeg -v error -y -f concat -safe 0 -i build/parts.txt -c copy build/video_only.mp4
-# аудио копируется побитово (-c:a copy), без перекодирования
-ffmpeg -v error -y -i build/video_only.mp4 -i "$SONG" -map 0:v -map 1:a -c:v copy -c:a copy -movflags +faststart "$OUT"
+# аудио: AAC 320 kbps — воспроизводится на iPhone, в TikTok, Reels и Shorts
+ffmpeg -v error -y -i build/video_only.mp4 -i "$SONG" -map 0:v -map 1:a -c:v copy -c:a aac -b:a 320k -movflags +faststart "$OUT"
 echo "DONE -> $OUT ($N frames)"
