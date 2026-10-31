@@ -1,0 +1,486 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:U;font-weight:400;src:url(fonts/unbounded-cyrillic-400-normal.woff2);unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:U;font-weight:400;src:url(fonts/unbounded-latin-400-normal.woff2);unicode-range:U+0000-00FF,U+2000-206F}
+@font-face{font-family:U;font-weight:700;src:url(fonts/unbounded-cyrillic-700-normal.woff2);unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:U;font-weight:700;src:url(fonts/unbounded-latin-700-normal.woff2);unicode-range:U+0000-00FF,U+2000-206F}
+@font-face{font-family:U;font-weight:900;src:url(fonts/unbounded-cyrillic-900-normal.woff2);unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:U;font-weight:900;src:url(fonts/unbounded-latin-900-normal.woff2);unicode-range:U+0000-00FF,U+2000-206F}
+@font-face{font-family:I;font-weight:500;src:url(fonts/inter-tight-cyrillic-500-normal.woff2);unicode-range:U+0400-045F}
+@font-face{font-family:I;font-weight:500;src:url(fonts/inter-tight-latin-500-normal.woff2);unicode-range:U+0000-00FF,U+2000-206F}
+@font-face{font-family:I;font-weight:800;src:url(fonts/inter-tight-cyrillic-800-normal.woff2);unicode-range:U+0400-045F}
+@font-face{font-family:I;font-weight:800;src:url(fonts/inter-tight-latin-800-normal.woff2);unicode-range:U+0000-00FF,U+2000-206F}
+html,body{margin:0;background:#000;overflow:hidden}
+canvas{display:block}
+</style>
+<script src="build/data.js"></script>
+<script src="sections.js"></script>
+</head><body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+"use strict";
+const W = 1080, H = 1920, D = window.DATA, FPS = D.fps;
+const cv = document.getElementById("c"), ctx = cv.getContext("2d");
+
+// ---------- утилиты ----------
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, k) => a + (b - a) * k;
+const smooth = k => (k = clamp(k), k * k * (3 - 2 * k));
+const easeOut = k => 1 - Math.pow(1 - clamp(k), 3);
+const easeOutExpo = k => (k = clamp(k), k >= 1 ? 1 : 1 - Math.pow(2, -10 * k));
+const easeBack = k => { k = clamp(k); const c = 1.9; return 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2); };
+function hash(n) { n = Math.sin(n * 127.1 + 311.7) * 43758.5453; return n - Math.floor(n); }
+function mix(c1, c2, k) { return c1.map((v, i) => lerp(v, c2[i], k)); }
+const rgb = (c, a = 1) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+function lastLE(arr, t) { let lo = 0, hi = arr.length - 1, r = -1; while (lo <= hi) { const m = (lo + hi) >> 1; if (arr[m] <= t) { r = m; lo = m + 1; } else hi = m - 1; } return r; }
+function env(name, t) { const a = D.env[name]; const i = clamp(t * FPS, 0, a.length - 1); const i0 = Math.floor(i); return lerp(a[i0], a[Math.min(a.length - 1, i0 + 1)], i - i0); }
+function pulse(arr, t, decay) { const i = lastLE(arr, t); return i < 0 ? 0 : Math.exp(-(t - arr[i]) / decay); }
+
+// value noise 3D
+const P = new Uint8Array(512); { const p = [...Array(256).keys()]; for (let i = 255; i > 0; i--) { const j = Math.floor(hash(i + 7) * (i + 1)); [p[i], p[j]] = [p[j], p[i]]; } for (let i = 0; i < 512; i++) P[i] = p[i & 255]; }
+const G = new Float32Array(256); for (let i = 0; i < 256; i++) G[i] = hash(i * 3.17 + 1);
+function vnoise(x, y, z) {
+  const X = Math.floor(x), Y = Math.floor(y), Z = Math.floor(z);
+  const fx = x - X, fy = y - Y, fz = z - Z;
+  const u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy), w = fz * fz * (3 - 2 * fz);
+  const xi = X & 255, yi = Y & 255, zi = Z & 255;
+  const g = (a, b, c) => G[P[P[P[xi + a] + yi + b] + zi + c]];
+  const x00 = lerp(g(0, 0, 0), g(1, 0, 0), u), x10 = lerp(g(0, 1, 0), g(1, 1, 0), u);
+  const x01 = lerp(g(0, 0, 1), g(1, 0, 1), u), x11 = lerp(g(0, 1, 1), g(1, 1, 1), u);
+  return lerp(lerp(x00, x10, v), lerp(x01, x11, v), w);
+}
+function fbm(x, y, z) { let s = 0, a = 0.5; for (let o = 0; o < 4; o++) { s += a * vnoise(x, y, z); x *= 2.03; y *= 2.03; z *= 1.7; a *= 0.5; } return s; }
+
+// ---------- палитры секций ----------
+const PAL = {
+  intro:  { bg0: [10, 2, 2],  bg1: [60, 8, 4],   orbA: [255, 70, 10],  orbB: [150, 10, 60],  fire: 0.55, fireA: 0.9,  acc: [255, 120, 30], energy: 0.7 },
+  verse:  { bg0: [6, 3, 14],  bg1: [34, 8, 52],  orbA: [140, 30, 200], orbB: [255, 70, 40],  fire: 0.22, fireA: 0.55, acc: [255, 110, 40], energy: 0.45 },
+  chorus: { bg0: [14, 1, 0],  bg1: [80, 10, 0],  orbA: [255, 90, 0],   orbB: [255, 20, 70],  fire: 0.62, fireA: 1.0,  acc: [255, 150, 30], energy: 1.0 },
+  cold:   { bg0: [2, 5, 16],  bg1: [6, 30, 62],  orbA: [40, 140, 255], orbB: [120, 40, 255], fire: 0.12, fireA: 0.35, acc: [90, 210, 255], energy: 0.35 },
+  drop:   { bg0: [12, 1, 10], bg1: [70, 4, 46],  orbA: [255, 30, 120], orbB: [255, 120, 20], fire: 0.38, fireA: 0.8,  acc: [255, 70, 150], energy: 0.8 },
+  freeze: { bg0: [4, 4, 8],   bg1: [30, 30, 46], orbA: [160, 170, 255], orbB: [255, 255, 255], fire: 0.08, fireA: 0.3, acc: [200, 220, 255], energy: 0.25 },
+  break:  { bg0: [4, 0, 0],   bg1: [30, 4, 0],   orbA: [255, 60, 0],   orbB: [120, 0, 30],   fire: 0.3,  fireA: 0.7,  acc: [255, 120, 30], energy: 0.4 },
+  final:  { bg0: [20, 2, 0],  bg1: [110, 16, 0], orbA: [255, 110, 0],  orbB: [255, 0, 80],   fire: 0.78, fireA: 1.0,  acc: [255, 170, 40], energy: 1.2 },
+  outro:  { bg0: [6, 0, 0],   bg1: [50, 6, 0],   orbA: [255, 80, 0],   orbB: [160, 0, 40],   fire: 0.5,  fireA: 0.85, acc: [255, 140, 40], energy: 0.6 },
+};
+const SEC = window.SECTIONS;
+function secAt(t) { let i = 0; while (i + 1 < SEC.length && SEC[i + 1].s <= t) i++; return i; }
+function palAt(t) {
+  const i = secAt(t), cur = PAL[SEC[i].type];
+  const k = smooth((t - SEC[i].s) / 0.45);
+  const prev = i > 0 ? PAL[SEC[i - 1].type] : cur;
+  const o = {};
+  for (const key in cur) o[key] = Array.isArray(cur[key]) ? mix(prev[key], cur[key], k) : lerp(prev[key], cur[key], k);
+  o.type = SEC[i].type; o.since = t - SEC[i].s;
+  return o;
+}
+const isHot = type => type === "chorus" || type === "final" || type === "intro";
+
+// ---------- линии текста ----------
+const LINES = D.lines;
+const RX = {
+  fire: /огон|огн|гори|горю|горит|пламя|жар/i,
+  cold: /холод|лёд|лед|мороз/i,
+  freeze: /замира|замер/i,
+  boom: /бум|пум|бах/i,
+  glitch: /параной/i,
+  love: /любов/i,
+};
+const allWords = [];
+LINES.forEach((l, li) => {
+  const sec = SEC[secAt(l.s + 0.01)].type;
+  l.sec = sec; l.hot = isHot(sec) || (l.tag && /припев|chorus/.test(l.tag));
+  const verseModes = ["rise", "pop", "letters", "swing", "blur"];
+  l.mode = l.hot ? "fire" : verseModes[li % verseModes.length];
+  l.words.forEach(w => { w.li = li; w.up = w.w.toUpperCase(); for (const k in RX) if (RX[k].test(w.w)) w.fx = k; allWords.push(w); });
+});
+// события для частиц/волн
+const fireEvents = allWords.filter(w => w.fx === "fire").map(w => w.s);
+const boomEvents = allWords.filter(w => w.fx === "boom").map(w => w.s);
+const hotKicks = D.kicks.filter(k => { const ty = SEC[secAt(k)].type; return isHot(ty) || ty === "drop"; });
+
+// замедление времени на «замирает»: интегрируем скорость покадрово
+const freezeWins = allWords.filter(w => w.fx === "freeze").map(w => [w.s, w.s + 3.2]);
+const WARP = new Float32Array(Math.ceil(D.dur * FPS) + 2);
+for (let f = 1; f < WARP.length; f++) {
+  const t = f / FPS; let sp = 1;
+  for (const [a, b] of freezeWins) if (t > a && t < b) sp = Math.min(sp, lerp(0.08, 1, smooth((t - a - 2.4) / 0.8)) );
+  WARP[f] = WARP[f - 1] + sp / FPS;
+}
+const warp = t => { const i = clamp(t * FPS, 0, WARP.length - 2); const i0 = Math.floor(i); return lerp(WARP[i0], WARP[i0 + 1], i - i0); };
+const freezeAmt = t => { let m = 0; for (const [a, b] of freezeWins) m = Math.max(m, smooth((t - a) / 0.4) * (1 - smooth((t - b + 0.6) / 0.6))); return m; };
+
+// ---------- предрасчёт спрайтов ----------
+function mk(w, h) { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; }
+const spark = mk(64, 64); { const g = spark.getContext("2d"); const r = g.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, "rgba(255,255,230,1)"); r.addColorStop(0.18, "rgba(255,190,80,0.9)"); r.addColorStop(0.5, "rgba(255,80,10,0.25)"); r.addColorStop(1, "rgba(255,40,0,0)"); g.fillStyle = r; g.fillRect(0, 0, 64, 64); }
+const flake = mk(64, 64); { const g = flake.getContext("2d"); const r = g.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, "rgba(255,255,255,1)"); r.addColorStop(0.25, "rgba(170,225,255,0.8)"); r.addColorStop(1, "rgba(80,160,255,0)"); g.fillStyle = r; g.fillRect(0, 0, 64, 64); }
+const vign = mk(W, H); { const g = vign.getContext("2d"); const r = g.createRadialGradient(W / 2, H * 0.48, H * 0.22, W / 2, H * 0.5, H * 0.75); r.addColorStop(0, "rgba(0,0,0,0)"); r.addColorStop(1, "rgba(0,0,0,0.85)"); g.fillStyle = r; g.fillRect(0, 0, W, H); }
+const grains = []; for (let k = 0; k < 6; k++) { const c = mk(360, 640), g = c.getContext("2d"), im = g.createImageData(360, 640); for (let i = 0; i < im.data.length; i += 4) { const v = hash(i * 0.731 + k * 91.3) * 255; im.data[i] = im.data[i + 1] = im.data[i + 2] = v; im.data[i + 3] = 255; } g.putImageData(im, 0, 0); grains.push(c); }
+const COLH = new Float32Array(120);
+const FW = 90, FH = 160, fireLo = mk(FW, FH), fireMid = mk(360, 640);
+const fctx = fireLo.getContext("2d"), fimg = fctx.createImageData(FW, FH), mctx = fireMid.getContext("2d");
+const RAMP = [[0, 0, 0, 0], [0.12, 70, 2, 0], [0.3, 190, 25, 0], [0.5, 255, 85, 0], [0.72, 255, 160, 30], [0.9, 255, 195, 80], [1, 255, 225, 150]];
+function ramp(v, cold) {
+  v = clamp(v); let i = 0; while (i < RAMP.length - 2 && v > RAMP[i + 1][0]) i++;
+  const a = RAMP[i], b = RAMP[i + 1], k = (v - a[0]) / (b[0] - a[0]);
+  let r = lerp(a[1], b[1], k), g = lerp(a[2], b[2], k), bl = lerp(a[3], b[3], k);
+  if (cold > 0) { const rr = r; r = lerp(r, bl * 0.6, cold); bl = lerp(bl, rr, cold); g = lerp(g, (g + rr) * 0.5, cold * 0.6); }
+  return [r, g, bl];
+}
+
+// ---------- фон ----------
+function drawBackground(t, tw, pal, low, rms) {
+  // градиент
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, rgb(pal.bg0)); g.addColorStop(0.55, rgb(mix(pal.bg0, pal.bg1, 0.5))); g.addColorStop(1, rgb(pal.bg1));
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  // светящиеся облака
+  ctx.globalCompositeOperation = "lighter";
+  for (let i = 0; i < 5; i++) {
+    const x = W * (0.5 + 0.42 * Math.sin(tw * (0.11 + i * 0.03) + i * 2.1));
+    const y = H * (0.5 + 0.4 * Math.cos(tw * (0.08 + i * 0.025) + i * 1.3));
+    const r = 520 + 260 * Math.sin(tw * 0.2 + i) + 200 * low * pal.energy;
+    const c = i % 2 ? pal.orbA : pal.orbB;
+    const rg = ctx.createRadialGradient(x, y, 0, x, y, r);
+    rg.addColorStop(0, rgb(c, 0.16 + 0.12 * rms)); rg.addColorStop(1, rgb(c, 0));
+    ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
+  }
+  // процедурный огонь
+  const cold = pal.type === "cold" ? 1 : pal.type === "freeze" ? 0.7 : 0;
+  const fb = fireEvents.length ? pulse(fireEvents, t, 0.7) : 0;
+  const hgt = clamp(pal.fire * (0.75 + 0.5 * low) + fb * 0.18, 0.04, 0.95);
+  const d = fimg.data;
+  for (let x = 0; x < FW; x++) {
+    const nx = x / FW * 4.0;
+    // высота языков пламени меняется по горизонтали
+    COLH[x] = hgt * (0.55 + 0.9 * vnoise(nx * 0.45 + 3, tw * 0.55, 1.7));
+  }
+  for (let y = 0; y < FH; y++) {
+    const yb = 1 - y / FH; // 0 внизу
+    for (let x = 0; x < FW; x++) {
+      const nx = x / FW * 4.0;
+      const n = fbm(nx * 1.4, yb * 4.2 - tw * 2.4, tw * 0.3);
+      const tongue = Math.abs(vnoise(nx * 2.2, yb * 2.0 - tw * 1.7, tw * 0.5) - 0.5) * 2;
+      let v = n * 1.25 - yb / COLH[x] * 0.9 + 0.12 - tongue * 0.22;
+      v = clamp(v * 2.0);
+      const c = ramp((v * v * 0.9 + v * 0.1) * (0.75 + 0.25 * clamp(yb * 4)), cold);
+      const i = (y * FW + x) * 4;
+      d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255;
+    }
+  }
+  fctx.putImageData(fimg, 0, 0);
+  mctx.imageSmoothingEnabled = true; mctx.imageSmoothingQuality = "high";
+  mctx.drawImage(fireLo, 0, 0, 360, 640);
+  ctx.globalCompositeOperation = "lighter";
+  ctx.globalAlpha = pal.fireA;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(fireMid, 0, 0, W, H);
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = "source-over";
+}
+
+function drawBeams(t, pal, low) {
+  if (pal.energy < 0.6) return;
+  const a = clamp((pal.energy - 0.6) * 1.4) * (0.35 + 0.65 * low);
+  ctx.save(); ctx.globalCompositeOperation = "lighter";
+  const cx = W / 2, cy = H * 1.05;
+  for (let i = 0; i < 9; i++) {
+    const ang = -Math.PI / 2 + Math.sin(t * 0.5 + i * 1.7) * 0.55 + (i - 4) * 0.13;
+    const len = H * 1.3, wid = 0.035 + 0.02 * hash(i);
+    const g = ctx.createLinearGradient(cx, cy, cx + Math.cos(ang) * len, cy + Math.sin(ang) * len);
+    g.addColorStop(0, rgb(pal.orbA, 0.16 * a)); g.addColorStop(1, rgb(pal.orbA, 0));
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(ang - wid) * len, cy + Math.sin(ang - wid) * len);
+    ctx.lineTo(cx + Math.cos(ang + wid) * len, cy + Math.sin(ang + wid) * len); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawParticles(t, tw, pal, rms) {
+  ctx.save(); ctx.globalCompositeOperation = "lighter";
+  const cold = pal.type === "cold" || pal.type === "freeze";
+  const N = Math.floor(60 + 160 * clamp(pal.energy * (0.6 + 0.6 * rms)));
+  for (let i = 0; i < N; i++) {
+    const vy = 90 + 260 * hash(i * 1.3), ph = hash(i * 2.7), x0 = hash(i * 5.1) * W;
+    const span = H * 1.25;
+    const yy = H + 60 - ((tw * vy * (cold ? 0.35 : 1) + ph * span) % span);
+    const x = x0 + Math.sin(tw * (0.6 + hash(i) * 1.5) + i) * 50 * (0.5 + hash(i * 9));
+    const life = 1 - (H + 60 - yy) / span;
+    const sz = (6 + 22 * hash(i * 3.3)) * (0.5 + 0.5 * life) * (cold ? 1.2 : 1);
+    ctx.globalAlpha = clamp(life * 1.4) * (0.35 + 0.65 * hash(i * 7.7)) * (0.5 + 0.6 * pal.energy);
+    ctx.drawImage(cold ? flake : spark, x - sz / 2, (cold ? H - yy : yy) - sz / 2, sz, sz);
+  }
+  // взрывы искр: удары в припевах + слова «огонь»
+  const bursts = [];
+  for (const k of [...hotKicks.slice(Math.max(0, lastLE(hotKicks, t) - 2), lastLE(hotKicks, t) + 1)]) bursts.push([k, 0.6, 14]);
+  for (const k of fireEvents) if (t >= k && t - k < 1.6) bursts.push([k, 1, 46]);
+  for (const [k, power, n] of bursts) {
+    const dt = t - k; if (dt < 0 || dt > 1.6) continue;
+    const ox = W / 2 + (hash(k * 13) - 0.5) * 300, oy = H * (0.55 + (hash(k * 17) - 0.5) * 0.2);
+    for (let j = 0; j < n; j++) {
+      const a = hash(k * 31 + j) * Math.PI * 2, sp = (500 + 1500 * hash(k * 7 + j * 3)) * power;
+      const dr = 2.6, f = (1 - Math.exp(-dr * dt)) / dr;
+      const x = ox + Math.cos(a) * sp * f, y = oy + Math.sin(a) * sp * f - 160 * dt * dt;
+      const sz = (10 + 26 * hash(j + k)) * (1 - dt / 1.6);
+      ctx.globalAlpha = clamp(1 - dt / 1.6) * 0.9;
+      ctx.drawImage(spark, x - sz / 2, y - sz / 2, sz, sz);
+    }
+  }
+  ctx.restore();
+}
+
+function drawRings(t, pal) {
+  ctx.save(); ctx.globalCompositeOperation = "lighter";
+  const evs = [];
+  const ki = lastLE(hotKicks, t);
+  for (let i = Math.max(0, ki - 2); i <= ki; i++) if (i >= 0) evs.push([hotKicks[i], 0.7, 0.28]);
+  for (const b of boomEvents) evs.push([b, 1.0, 0.7]);
+  for (const [k, life, al] of evs) {
+    const dt = t - k; if (dt < 0 || dt > life) continue;
+    const p = dt / life, r = 80 + 1300 * easeOut(p);
+    ctx.strokeStyle = rgb(mix(pal.acc, [255, 255, 255], 0.3), al * (1 - p));
+    ctx.lineWidth = 3 + 18 * (1 - p);
+    ctx.beginPath(); ctx.arc(W / 2, H * 0.5, r, 0, Math.PI * 2); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// ---------- текст ----------
+const layoutCache = new Map();
+function fontFor(l, size) { return `${l.hot ? 900 : 700} ${size}px U`; }
+function layout(li) {
+  if (layoutCache.has(li)) return layoutCache.get(li);
+  const l = LINES[li], maxW = 900;
+  let size = l.hot ? 150 : 100;
+  const words = l.words.map(w => w.up);
+  let rows;
+  for (; ; size -= 4) {
+    ctx.font = fontFor(l, size);
+    const sp = ctx.measureText(" ").width;
+    const wid = words.map(w => ctx.measureText(w).width);
+    if (Math.max(...wid) > maxW) continue;
+    rows = []; let cur = [], cw = 0;
+    const perRow = l.hot ? 2 : 99;
+    wid.forEach((w, i) => {
+      if (cur.length && (cw + sp + w > maxW || cur.length >= perRow)) { rows.push({ idx: cur, w: cw }); cur = []; cw = 0; }
+      cw += (cur.length ? sp : 0) + w; cur.push(i);
+    });
+    rows.push({ idx: cur, w: cw });
+    if (rows.length <= (l.hot ? 4 : 4)) break;
+  }
+  ctx.font = fontFor(l, size);
+  const sp = ctx.measureText(" ").width, lh = size * (l.hot ? 1.08 : 1.22);
+  const pos = [];
+  // разное положение строк по вертикали, чтобы не было однообразия
+  const yOff = l.hot ? 0 : ((li % 3) - 1) * 110;
+  const top = H * 0.5 + yOff - (rows.length * lh) / 2 + size * 0.36;
+  rows.forEach((r, ri) => {
+    let x = W / 2 - r.w / 2;
+    r.idx.forEach(i => { const wd = ctx.measureText(words[i]).width; pos[i] = { x: x + wd / 2, y: top + ri + ri * lh, w: wd }; x += wd + sp; });
+  });
+  const res = { size, pos, lh };
+  layoutCache.set(li, res); return res;
+}
+
+function wordColor(l, w, active, pal) {
+  if (w.fx === "cold") return [150, 225, 255];
+  if (w.fx === "love") return [255, 90, 160];
+  if (active) return mix(pal.acc, [255, 255, 255], 0.15);
+  return [255, 248, 240];
+}
+
+function fireFill(x, y, size, t) {
+  const g = ctx.createLinearGradient(0, y - size * 0.75, 0, y + size * 0.15);
+  const s = 0.5 + 0.5 * Math.sin(t * 6);
+  g.addColorStop(0, "#fffbe6"); g.addColorStop(0.35 + 0.1 * s, "#ffd04a"); g.addColorStop(0.7, "#ff6a00"); g.addColorStop(1, "#d4001a");
+  return g;
+}
+
+function drawLine(li, t, pal, low) {
+  const l = LINES[li];
+  const enter = l.s - 0.12, exitS = l.e - 0.12, exitE = l.e + 0.22;
+  if (t < enter || t > exitE) return;
+  const L = layout(li);
+  const ex = smooth((t - exitS) / (exitE - exitS));
+  ctx.save();
+  ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+  // уход строки: размытие вверх
+  const exY = -50 * ex, exA = 1 - ex, exB = ex * 14;
+  const glitch = l.words.some(w => w.fx === "glitch" && t > w.s);
+  l.words.forEach((w, wi) => {
+    const p = L.pos[wi]; if (!p) return;
+    const dt = t - w.s; if (dt < -0.02) return;
+    const active = t >= w.s && t < w.e + 0.05;
+    const col = wordColor(l, w, active, pal);
+    let x = p.x, y = p.y + exY, sc = 1, a = exA, blur = exB, rot = 0, letters = null;
+    const k = dt / 0.32;
+    switch (l.mode) {
+      case "rise": y += 70 * (1 - easeOutExpo(k)); a *= clamp(k * 2.5); blur += 10 * (1 - easeOut(k)); break;
+      case "pop": sc = lerp(1.7, 1, easeBack(k * 1.2)); a *= clamp(k * 3); blur += 8 * (1 - easeOut(k)); break;
+      case "swing": rot = -0.35 * (1 - easeBack(k)); x -= 90 * (1 - easeOutExpo(k)); a *= clamp(k * 3); break;
+      case "blur": sc = lerp(1.25, 1, easeOut(k)); a *= clamp(k * 1.6); blur += 22 * (1 - easeOut(k * 1.1)); break;
+      case "letters": letters = clamp(dt / Math.max(0.12, Math.min(0.45, (w.e - w.s) * 0.8))); a *= clamp(k * 4); break;
+      case "fire": sc = lerp(1.9, 1, easeBack(dt / 0.26)); a *= clamp(dt / 0.06); blur += 12 * (1 - easeOut(dt / 0.2)); break;
+    }
+    // сильная доля: лёгкое «дыхание» активного слова
+    if (active) sc *= 1 + 0.035 * low * pal.energy;
+    ctx.save();
+    ctx.translate(x, y); ctx.rotate(rot); ctx.scale(sc, sc);
+    ctx.font = fontFor(l, L.size);
+    ctx.globalAlpha = clamp(a);
+    if (blur > 0.4) ctx.filter = `blur(${blur.toFixed(1)}px)`;
+    if (l.mode === "fire") {
+      const imp = Math.exp(-dt / 0.22);
+      // хроматическое расслоение в момент удара
+      if (imp > 0.05) {
+        ctx.globalCompositeOperation = "lighter";
+        ctx.fillStyle = `rgba(255,0,40,${0.55 * imp})`; ctx.fillText(w.up, 14 * imp, 0);
+        ctx.fillStyle = `rgba(0,200,255,${0.55 * imp})`; ctx.fillText(w.up, -14 * imp, 0);
+        ctx.globalCompositeOperation = "source-over";
+      }
+      // тёмная подложка для читаемости на ярком огне
+      ctx.shadowColor = "rgba(20,0,0,0.9)"; ctx.shadowBlur = 45; ctx.fillStyle = "rgba(25,2,0,0.75)";
+      ctx.fillText(w.up, 0, 6);
+      ctx.shadowColor = rgb(pal.acc, 0.95); ctx.shadowBlur = 30 + 35 * low;
+      ctx.fillStyle = fireFill(0, 0, L.size, t + wi);
+      ctx.fillText(w.up, 0, 0);
+      ctx.shadowBlur = 0;
+      ctx.lineWidth = 2; ctx.strokeStyle = "rgba(255,240,200,0.55)"; ctx.strokeText(w.up, 0, 0);
+      if (imp > 0.1) { ctx.globalAlpha = clamp(a) * imp * 0.8; ctx.fillStyle = "#fff"; ctx.fillText(w.up, 0, 0); }
+    } else {
+      if (active) { ctx.shadowColor = rgb(col, 0.9); ctx.shadowBlur = 30 + 25 * low; }
+      else { ctx.shadowColor = "rgba(0,0,0,0.6)"; ctx.shadowBlur = 18; }
+      ctx.fillStyle = rgb(col);
+      if (letters !== null) {
+        const chars = [...w.up], tot = ctx.measureText(w.up).width; let cx = -tot / 2;
+        ctx.textAlign = "left";
+        chars.forEach((ch, ci) => {
+          const cw = ctx.measureText(ch).width;
+          const lk = clamp(letters * chars.length - ci);
+          if (lk > 0) {
+            ctx.save(); ctx.globalAlpha = clamp(a) * lk;
+            ctx.translate(cx + cw / 2, -40 * (1 - easeOut(lk)));
+            ctx.scale(1, lerp(1.6, 1, easeOut(lk)));
+            ctx.textAlign = "center"; ctx.fillText(ch, 0, 0); ctx.restore();
+          }
+          cx += cw;
+        });
+      } else ctx.fillText(w.up, 0, 0);
+      // эхо-шлейф при появлении
+      if (l.mode === "pop" && k < 1) { ctx.shadowBlur = 0; ctx.globalAlpha = 0.25 * (1 - k); ctx.scale(1.25, 1.25); ctx.fillText(w.up, 0, 0); }
+    }
+    ctx.restore();
+  });
+  // глитч на «паранойе»: смещение полос
+  if (glitch) {
+    const gw = l.words.find(w => w.fx === "glitch"), g = clamp((t - gw.s) / 0.1) * (1 - ex);
+    const fr = Math.floor(t * 15);
+    for (let s = 0; s < 6; s++) {
+      const yy = H * 0.3 + hash(fr * 7 + s) * H * 0.4, hh = 20 + 70 * hash(fr + s * 3), dx = (hash(fr * 3 + s) - 0.5) * 120 * g;
+      ctx.drawImage(cv, 0, yy, W, hh, dx, yy, W, hh);
+    }
+  }
+  ctx.restore();
+}
+
+// гигантское контурное слово на заднем плане куплетов
+function drawGhostWord(t, pal) {
+  const li = LINES.findIndex(l => t >= l.s - 0.2 && t <= l.e + 0.2);
+  if (li < 0 || LINES[li].hot) return;
+  const l = LINES[li];
+  const w = l.words.reduce((a, b) => (b.w.length > a.w.length ? b : a));
+  const k = (t - l.s) / Math.max(0.5, l.e - l.s);
+  const a = smooth((t - l.s + 0.2) / 0.3) * (1 - smooth((t - l.e) / 0.2));
+  ctx.save();
+  ctx.font = "900 330px U"; ctx.textAlign = "center";
+  ctx.globalAlpha = 0.11 * a;
+  ctx.lineWidth = 3; ctx.strokeStyle = rgb(pal.acc);
+  ctx.translate(W / 2 + 260 - 520 * k, H * (li % 2 ? 0.25 : 0.8));
+  ctx.rotate(-0.06);
+  ctx.strokeText(w.up, 0, 0);
+  ctx.restore();
+}
+
+function drawTitle(t, pal) {
+  // интро: маленький титр сверху
+  if (t < 5) {
+    const a = smooth(t / 0.6) * (1 - smooth((t - 3.8) / 0.8));
+    ctx.save(); ctx.globalAlpha = a; ctx.textAlign = "center";
+    ctx.font = "500 30px I"; ctx.fillStyle = "rgba(255,230,210,0.85)";
+    ctx.letterSpacing = "6px";
+    ctx.fillText(window.ARTISTS.length > 50 ? "SLAVA MARLOW · GAZAN · КОБЯКОВ" : window.ARTISTS, W / 2, 300);
+    ctx.fillText("TOLY SUMMER · ВОВА СОЛОДКОВ", W / 2, 345);
+    ctx.restore();
+  }
+  // аутро: большой титр
+  const os = SEC[SEC.length - 1].s;
+  if (t > os) {
+    const k = t - os;
+    const a = smooth(k / 0.6);
+    ctx.save(); ctx.textAlign = "center";
+    const lines = window.TITLE.split("\n");
+    lines.forEach((s, i) => {
+      const lk = clamp((k - i * 0.25) / 0.5);
+      ctx.save(); ctx.globalAlpha = a * lk;
+      ctx.translate(W / 2, H * 0.47 + i * 150); ctx.scale(lerp(1.4, 1, easeOut(lk)), lerp(1.4, 1, easeOut(lk)));
+      ctx.font = "900 112px U"; ctx.shadowColor = rgb(pal.acc); ctx.shadowBlur = 50;
+      ctx.fillStyle = fireFill(0, 0, 112, t); ctx.fillText(s, 0, 0); ctx.restore();
+    });
+    ctx.globalAlpha = a * clamp((k - 0.8) / 0.6);
+    ctx.font = "500 30px I"; ctx.fillStyle = "rgba(255,230,210,0.9)"; ctx.letterSpacing = "5px";
+    ctx.fillText("SLAVA MARLOW · GAZAN · КОБЯКОВ", W / 2, H * 0.47 + 330);
+    ctx.fillText("TOLY SUMMER · ВОВА СОЛОДКОВ", W / 2, H * 0.47 + 375);
+    ctx.restore();
+  }
+}
+
+// ---------- кадр ----------
+function renderFrame(f) {
+  const t = f / FPS, tw = warp(t);
+  const pal = palAt(t);
+  const low = env("low", t), rms = env("rms", t);
+  const kick = pulse(D.kicks, t, 0.13) * pal.energy;
+  const frz = freezeAmt(t);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1; ctx.filter = "none"; ctx.globalCompositeOperation = "source-over";
+  // камера: зум на бочку, лёгкий дрейф
+  const zoom = 1.02 + 0.03 * kick * (1 - frz);
+  ctx.save();
+  ctx.translate(W / 2, H / 2); ctx.scale(zoom, zoom); ctx.rotate(Math.sin(tw * 0.25) * 0.006); ctx.translate(-W / 2, -H / 2);
+  drawBackground(t, tw, pal, low, rms);
+  drawBeams(t, pal, low);
+  drawRings(t, pal);
+  drawParticles(t, tw, pal, rms);
+  ctx.restore();
+  // заморозка — обесцвечивание фона
+  if (frz > 0) { ctx.save(); ctx.globalCompositeOperation = "saturation"; ctx.globalAlpha = 0.85 * frz; ctx.fillStyle = "#808080"; ctx.fillRect(0, 0, W, H); ctx.restore(); }
+  // холод — синий налёт
+  const coldW = allWords.find(w => w.fx === "cold" && t > w.s - 0.05 && t < w.s + 2.0);
+  if (coldW) { const k = (t - coldW.s); ctx.save(); ctx.globalCompositeOperation = "screen"; ctx.globalAlpha = 0.35 * Math.exp(-Math.max(0, k) / 0.6) * clamp((k + 0.05) / 0.08); ctx.fillStyle = "#3aa8ff"; ctx.fillRect(0, 0, W, H); ctx.restore(); }
+  // затемнение за текстом для читаемости
+  ctx.save(); const sg = ctx.createRadialGradient(W / 2, H / 2, 50, W / 2, H / 2, 760); sg.addColorStop(0, "rgba(0,0,0,0.38)"); sg.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = sg; ctx.fillRect(0, 0, W, H); ctx.restore();
+  drawGhostWord(t, pal);
+  // текст с тряской камеры в припевах
+  ctx.save();
+  if (isHot(pal.type)) {
+    const wi = lastLE(allWords.map(w => w.s), t);
+    if (wi >= 0) { const s = Math.exp(-(t - allWords[wi].s) / 0.12) * 14; ctx.translate((hash(wi * 3.1) - 0.5) * s, (hash(wi * 5.3) - 0.5) * s); }
+  }
+  for (let li = 0; li < LINES.length; li++) drawLine(li, t, pal, low);
+  ctx.restore();
+  drawTitle(t, pal);
+  // вспышка на сильных ударах припева
+  if (isHot(pal.type) || pal.type === "drop") { ctx.save(); ctx.globalCompositeOperation = "screen"; ctx.globalAlpha = 0.12 * pulse(hotKicks, t, 0.09); ctx.fillStyle = rgb(pal.acc); ctx.fillRect(0, 0, W, H); ctx.restore(); }
+  ctx.drawImage(vign, 0, 0);
+  ctx.save(); ctx.globalCompositeOperation = "overlay"; ctx.globalAlpha = 0.09; ctx.drawImage(grains[f % grains.length], 0, 0, W, H); ctx.restore();
+  // затухание в конце
+  const fade = smooth((t - (D.dur - 1.0)) / 0.9);
+  const fadeIn = 1 - smooth(t / 0.25);
+  if (fade > 0 || fadeIn > 0) { ctx.fillStyle = `rgba(0,0,0,${Math.max(fade, fadeIn)})`; ctx.fillRect(0, 0, W, H); }
+}
+window.renderFrame = renderFrame;
+window.FRAMES = Math.ceil(D.dur * FPS);
+document.fonts.load("900 50px U").then(() => Promise.all(["700 50px U", "400 50px U", "500 30px I", "900 50px U"].map(f => document.fonts.load(f, "ЖЁжAa")))).then(() => document.fonts.ready).then(() => { window.READY = true; });
+</script>
+</body></html>
