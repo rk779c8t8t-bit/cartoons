@@ -1,0 +1,746 @@
+[
+ {
+  "start": 0.0,
+  "end": 3.9,
+  "text": "*ДИНАСТИЯ*",
+  "section": "title",
+  "pal": 4,
+  "special": true
+ },
+ {
+  "start": 3.9,
+  "end": 6.943,
+  "text": "Давалке МСК стреляю *сиги* — *ковбой*",
+  "section": "chorus1",
+  "pal": 0,
+  "special": false
+ },
+ {
+  "start": 6.943,
+  "end": 8.918947368421053,
+  "text": "Я кинню тебя *точно* так же,",
+  "section": "chorus1",
+  "pal": 1,
+  "special": false
+ },
+ {
+  "start": 8.918947368421053,
+  "end": 10.356,
+  "text": "только чуть-чуть *другой*",
+  "section": "chorus1",
+  "pal": 2,
+  "special": false
+ },
+ {
+  "start": 10.356,
+  "end": 11.932315789473684,
+  "text": "Стеснялась всё *снимать*, *окей*,",
+  "section": "chorus1",
+  "pal": 3,
+  "special": false
+ },
+ {
+  "start": 11.932315789473684,
+  "end": 13.350999999999999,
+  "text": "прикрой ебальник *рукой*",
+  "section": "chorus1",
+  "pal": 4,
+  "special": false
+ },
+ {
+  "start": 13.351,
+  "end": 15.180399999999999,
+  "text": "Я смотрю в *зеркало* всё так же,",
+  "section": "chorus1",
+  "pal": 5,
+  "special": false
+ },
+ {
+  "start": 15.180399999999999,
+  "end": 16.4,
+  "text": "но не стану *собой*",
+  "section": "chorus1",
+  "pal": 6,
+  "special": false
+ },
+ {
+  "start": 16.4,
+  "end": 18.172047619047618,
+  "text": "Люблю *Москву*, но заебали",
+  "section": "verse1",
+  "pal": 0,
+  "special": false
+ },
+ {
+  "start": 18.172047619047618,
+  "end": 19.783,
+  "text": "все московские *шалавы*",
+  "section": "verse1",
+  "pal": 1,
+  "special": false
+ },
+ {
+  "start": 19.783,
+  "end": 21.943,
+  "text": "В *уродстве* вижу *красоту*",
+  "section": "verse1",
+  "pal": 2,
+  "special": false
+ },
+ {
+  "start": 21.943,
+  "end": 23.615,
+  "text": "В *уродстве* моя *красота*",
+  "section": "verse1",
+  "pal": 3,
+  "special": false
+ },
+ {
+  "start": 23.615,
+  "end": 25.24,
+  "text": "Теперь на *«вы»*, ведь ты давно",
+  "section": "verse1",
+  "pal": 4,
+  "special": false
+ },
+ {
+  "start": 25.24,
+  "end": 26.215,
+  "text": "уже *не та*",
+  "section": "verse1",
+  "pal": 5,
+  "special": false
+ },
+ {
+  "start": 26.215,
+  "end": 27.7245,
+  "text": "Давай я тебя *порежу*,",
+  "section": "verse1",
+  "pal": 6,
+  "special": false
+ },
+ {
+  "start": 27.7245,
+  "end": 29.234,
+  "text": "а ты мне *выстрелишь* в лоб",
+  "section": "verse1",
+  "pal": 0,
+  "special": false
+ },
+ {
+  "start": 29.234,
+  "end": 31.511363636363637,
+  "text": "Мы *психопаты* (у-ау), флексим так,",
+  "section": "verse1",
+  "pal": 1,
+  "special": false
+ },
+ {
+  "start": 31.511363636363637,
+  "end": 33.088,
+  "text": "как будто завтра *умрём*",
+  "section": "verse1",
+  "pal": 2,
+  "special": false
+ },
+ {
+  "start": 33.088,
+  "end": 34.807,
+  "text": "Но это *вряд ли*, поймал (*фью*)",
+  "section": "verse1",
+  "pal": 3,
+  "special": false
+ },
+ {
+  "start": 34.807,
+  "end": 37.361,
+  "text": "И *белый дым*, чё-то чернит *потолок*",
+  "section": "verse1",
+  "pal": 4,
+  "special": false
+ },
+ {
+  "start": 37.361,
+  "end": 39.079,
+  "text": "На время *завязал*, теперь",
+  "section": "verse1",
+  "pal": 5,
+  "special": false
+ },
+ {
+  "start": 39.079,
+  "end": 40.67729411764706,
+  "text": "Я *курю* так, как будто",
+  "section": "verse1",
+  "pal": 6,
+  "special": false
+ },
+ {
+  "start": 40.67729411764706,
+  "end": 42.098,
+  "text": "*никогда* не умел",
+  "section": "verse1",
+  "pal": 0,
+  "special": false
+ },
+ {
+  "start": 42.098,
+  "end": 43.1545,
+  "text": "Чувство то, что я",
+  "section": "verse1",
+  "pal": 1,
+  "special": false
+ },
+ {
+  "start": 43.1545,
+  "end": 44.211,
+  "text": "пиздец *отупел*",
+  "section": "verse1",
+  "pal": 2,
+  "special": false
+ },
+ {
+  "start": 44.211,
+  "end": 46.347,
+  "text": "Ты не *стреляешь*, давай дам *прицел*",
+  "section": "verse1",
+  "pal": 3,
+  "special": false
+ },
+ {
+  "start": 46.347,
+  "end": 48.948,
+  "text": "*Сумма* большая, как будто я даун",
+  "section": "verse1",
+  "pal": 4,
+  "special": false
+ },
+ {
+  "start": 48.948,
+  "end": 51.084,
+  "text": "*Бро*, не могу *думать* сегодня",
+  "section": "verse1",
+  "pal": 5,
+  "special": false
+ },
+ {
+  "start": 51.084,
+  "end": 52.80200000000001,
+  "text": "Ты всё ещё *там*, но не моя,",
+  "section": "verse1",
+  "pal": 6,
+  "special": false
+ },
+ {
+  "start": 52.80200000000001,
+  "end": 54.52000000000001,
+  "text": "ты всё ещё *тут*, но там *не я*",
+  "section": "verse1",
+  "pal": 0,
+  "special": false
+ },
+ {
+  "start": 54.52,
+  "end": 56.41,
+  "text": "Мы делаем *много*, но, честно,",
+  "section": "verse1",
+  "pal": 1,
+  "special": false
+ },
+ {
+  "start": 56.41,
+  "end": 58.3,
+  "text": "я знаю, что буду *непонят*",
+  "section": "verse1",
+  "pal": 2,
+  "special": false
+ },
+ {
+  "start": 58.3,
+  "end": 59.9,
+  "text": "*ДИНАСТИЯ!*",
+  "section": "drop",
+  "pal": 5,
+  "special": true
+ },
+ {
+  "start": 59.9,
+  "end": 61.649,
+  "text": "*Первый миллион*",
+  "section": "chorus2",
+  "pal": 3,
+  "special": false
+ },
+ {
+  "start": 61.649,
+  "end": 63.031666666666666,
+  "text": "Я первый *чемпион*,",
+  "section": "chorus2",
+  "pal": 4,
+  "special": false
+ },
+ {
+  "start": 63.031666666666666,
+  "end": 64.76,
+  "text": "и мне стянуло кожу *ртом*",
+  "section": "chorus2",
+  "pal": 5,
+  "special": false
+ },
+ {
+  "start": 64.76,
+  "end": 66.44575,
+  "text": "*Вильчинский* знает толк в этом,",
+  "section": "chorus2",
+  "pal": 6,
+  "special": false
+ },
+ {
+  "start": 66.44575,
+  "end": 67.825,
+  "text": "мы снимем на *iPhone*",
+  "section": "chorus2",
+  "pal": 0,
+  "special": false
+ },
+ {
+  "start": 67.825,
+  "end": 69.20811111111111,
+  "text": "*Концерты* из *Уфы*,",
+  "section": "chorus2",
+  "pal": 1,
+  "special": false
+ },
+ {
+  "start": 69.20811111111111,
+  "end": 70.937,
+  "text": "мы пишем это на *Samson*",
+  "section": "chorus2",
+  "pal": 2,
+  "special": false
+ },
+ {
+  "start": 70.937,
+  "end": 72.85265,
+  "text": "Я помню, мама говорила:",
+  "section": "chorus2",
+  "pal": 3,
+  "special": false
+ },
+ {
+  "start": 72.85265,
+  "end": 74.42,
+  "text": "«Выкинь нахуй *микрофон*»",
+  "section": "chorus2",
+  "pal": 4,
+  "special": false
+ },
+ {
+  "start": 74.42,
+  "end": 75.80266666666667,
+  "text": "Я первый *чемпион*,",
+  "section": "chorus2",
+  "pal": 5,
+  "special": false
+ },
+ {
+  "start": 75.80266666666667,
+  "end": 77.531,
+  "text": "и мне стянуло кожу *ртом*",
+  "section": "chorus2",
+  "pal": 6,
+  "special": false
+ },
+ {
+  "start": 77.531,
+  "end": 79.22995,
+  "text": "*Креатор* знает толк в этом,",
+  "section": "chorus2",
+  "pal": 0,
+  "special": false
+ },
+ {
+  "start": 79.22995,
+  "end": 80.62,
+  "text": "мы снимем на *iPhone*",
+  "section": "chorus2",
+  "pal": 1,
+  "special": false
+ },
+ {
+  "start": 80.62,
+  "end": 81.99244444444444,
+  "text": "*Концерты* из *Москвы*,",
+  "section": "chorus2",
+  "pal": 2,
+  "special": false
+ },
+ {
+  "start": 81.99244444444444,
+  "end": 83.708,
+  "text": "мы пишем это на *Samson*",
+  "section": "chorus2",
+  "pal": 3,
+  "special": false
+ },
+ {
+  "start": 83.708,
+  "end": 85.4636,
+  "text": "Я помню, мама говорила:",
+  "section": "chorus2",
+  "pal": 4,
+  "special": false
+ },
+ {
+  "start": 85.4636,
+  "end": 86.9,
+  "text": "«Выкинь нахуй *микрофон*»",
+  "section": "chorus2",
+  "pal": 5,
+  "special": false
+ },
+ {
+  "start": 86.9,
+  "end": 88.2065,
+  "text": "Я мог остаться *тенью*,",
+  "section": "verse2",
+  "pal": 6,
+  "special": false
+ },
+ {
+  "start": 88.2065,
+  "end": 89.513,
+  "text": "и всё было бы *так же*",
+  "section": "verse2",
+  "pal": 0,
+  "special": false
+ },
+ {
+  "start": 89.513,
+  "end": 91.22405,
+  "text": "Но захотелось стучать *выше*",
+  "section": "verse2",
+  "pal": 1,
+  "special": false
+ },
+ {
+  "start": 91.22405,
+  "end": 92.624,
+  "text": "этих *многоэтажек*",
+  "section": "verse2",
+  "pal": 2,
+  "special": false
+ },
+ {
+  "start": 92.624,
+  "end": 93.971,
+  "text": "Моя хуйня стала *мамбл* —",
+  "section": "verse2",
+  "pal": 3,
+  "special": false
+ },
+ {
+  "start": 93.971,
+  "end": 95.31800000000001,
+  "text": "так разбирай на *цитаты*",
+  "section": "verse2",
+  "pal": 4,
+  "special": false
+ },
+ {
+  "start": 95.318,
+  "end": 96.8735,
+  "text": "Твой друг чё тоже стал *рэпер*?",
+  "section": "verse2",
+  "pal": 5,
+  "special": false
+ },
+ {
+  "start": 96.8735,
+  "end": 98.429,
+  "text": "Но продаёт *Золо-* а! (*Ву*)",
+  "section": "verse2",
+  "pal": 6,
+  "special": false
+ },
+ {
+  "start": 98.429,
+  "end": 99.68321428571429,
+  "text": "*Прости*, но я немного",
+  "section": "verse2",
+  "pal": 0,
+  "special": false
+ },
+ {
+  "start": 99.68321428571429,
+  "end": 100.38,
+  "text": "на *другом*",
+  "section": "verse2",
+  "pal": 1,
+  "special": false
+ },
+ {
+  "start": 100.38,
+  "end": 101.901,
+  "text": "Если *прощу* тебя сейчас,",
+  "section": "verse2",
+  "pal": 2,
+  "special": false
+ },
+ {
+  "start": 101.901,
+  "end": 103.422,
+  "text": "то не прощу *себя* потом",
+  "section": "verse2",
+  "pal": 3,
+  "special": false
+ },
+ {
+  "start": 103.422,
+  "end": 105.19971428571428,
+  "text": "Да, мой *диагноз* — ненормальный,",
+  "section": "verse2",
+  "pal": 4,
+  "special": false
+ },
+ {
+  "start": 105.19971428571428,
+  "end": 106.533,
+  "text": "но *психолог* может врать",
+  "section": "verse2",
+  "pal": 5,
+  "special": false
+ },
+ {
+  "start": 106.533,
+  "end": 108.077,
+  "text": "Помню, показывал свой *рэп*,",
+  "section": "verse2",
+  "pal": 6,
+  "special": false
+ },
+ {
+  "start": 108.077,
+  "end": 109.621,
+  "text": "но тебе было *наплевать*",
+  "section": "verse2",
+  "pal": 0,
+  "special": false
+ },
+ {
+  "start": 109.621,
+  "end": 110.908,
+  "text": "А что *сейчас*? Забавно,",
+  "section": "verse2",
+  "pal": 1,
+  "special": false
+ },
+ {
+  "start": 110.908,
+  "end": 112.338,
+  "text": "как ты просишь со мной *фотку*",
+  "section": "verse2",
+  "pal": 2,
+  "special": false
+ },
+ {
+  "start": 112.338,
+  "end": 113.81990476190477,
+  "text": "Никакого *Мит Энд Грита*,",
+  "section": "verse2",
+  "pal": 3,
+  "special": false
+ },
+ {
+  "start": 113.81990476190477,
+  "end": 115.45,
+  "text": "максимум могу дать в *глотку*",
+  "section": "verse2",
+  "pal": 4,
+  "special": false
+ },
+ {
+  "start": 115.45,
+  "end": 117.00550000000001,
+  "text": "Для меня стало *нормальным*",
+  "section": "verse2",
+  "pal": 5,
+  "special": false
+ },
+ {
+  "start": 117.00550000000001,
+  "end": 118.561,
+  "text": "слить *пол-ляма* на *футболку*",
+  "section": "verse2",
+  "pal": 6,
+  "special": false
+ },
+ {
+  "start": 118.561,
+  "end": 120.0805,
+  "text": "Мой любимый *рэпер* в прошлом",
+  "section": "verse2",
+  "pal": 0,
+  "special": false
+ },
+ {
+  "start": 120.0805,
+  "end": 121.6,
+  "text": "пиздит мои *наработки* (*упс*)",
+  "section": "verse2",
+  "pal": 1,
+  "special": false
+ },
+ {
+  "start": 121.6,
+  "end": 123.205,
+  "text": "*Первый миллион*",
+  "section": "chorus3",
+  "pal": 2,
+  "special": false
+ },
+ {
+  "start": 123.205,
+  "end": 124.57744444444445,
+  "text": "Я первый *чемпион*,",
+  "section": "chorus3",
+  "pal": 3,
+  "special": false
+ },
+ {
+  "start": 124.57744444444445,
+  "end": 126.293,
+  "text": "и мне стянуло кожу *ртом*",
+  "section": "chorus3",
+  "pal": 4,
+  "special": false
+ },
+ {
+  "start": 126.293,
+  "end": 128.0046,
+  "text": "*Вильчинский* знает толк в этом,",
+  "section": "chorus3",
+  "pal": 5,
+  "special": false
+ },
+ {
+  "start": 128.0046,
+  "end": 129.405,
+  "text": "мы снимем на *iPhone*",
+  "section": "chorus3",
+  "pal": 6,
+  "special": false
+ },
+ {
+  "start": 129.405,
+  "end": 130.77744444444446,
+  "text": "*Концерты* из *Уфы*,",
+  "section": "chorus3",
+  "pal": 0,
+  "special": false
+ },
+ {
+  "start": 130.77744444444446,
+  "end": 132.493,
+  "text": "мы пишем это на *Samson*",
+  "section": "chorus3",
+  "pal": 1,
+  "special": false
+ },
+ {
+  "start": 132.493,
+  "end": 134.1914,
+  "text": "Я помню, мама говорила:",
+  "section": "chorus3",
+  "pal": 2,
+  "special": false
+ },
+ {
+  "start": 134.1914,
+  "end": 135.581,
+  "text": "«Выкинь нахуй *микрофон*»",
+  "section": "chorus3",
+  "pal": 3,
+  "special": false
+ },
+ {
+  "start": 135.581,
+  "end": 136.95388888888888,
+  "text": "Я первый *чемпион*,",
+  "section": "chorus3",
+  "pal": 4,
+  "special": false
+ },
+ {
+  "start": 136.95388888888888,
+  "end": 138.67,
+  "text": "и мне стянуло кожу *ртом*",
+  "section": "chorus3",
+  "pal": 5,
+  "special": false
+ },
+ {
+  "start": 138.67,
+  "end": 140.16379999999998,
+  "text": "*Креатор* знает толк в этом,",
+  "section": "chorus3",
+  "pal": 6,
+  "special": false
+ },
+ {
+  "start": 140.16379999999998,
+  "end": 141.386,
+  "text": "мы снимем на *iPhone*",
+  "section": "chorus3",
+  "pal": 0,
+  "special": false
+ },
+ {
+  "start": 141.386,
+  "end": 142.7588888888889,
+  "text": "*Концерты* из *Москвы*,",
+  "section": "chorus3",
+  "pal": 1,
+  "special": false
+ },
+ {
+  "start": 142.7588888888889,
+  "end": 144.475,
+  "text": "мы пишем это на *Samson*",
+  "section": "chorus3",
+  "pal": 2,
+  "special": false
+ },
+ {
+  "start": 144.475,
+  "end": 146.19375,
+  "text": "Я помню, мама говорила:",
+  "section": "chorus3",
+  "pal": 3,
+  "special": false
+ },
+ {
+  "start": 146.19375,
+  "end": 147.6,
+  "text": "«Выкинь нахуй *микрофон*»",
+  "section": "chorus3",
+  "pal": 4,
+  "special": false
+ },
+ {
+  "start": 147.6,
+  "end": 149.035,
+  "text": "tainiy-tainiy",
+  "section": "outro",
+  "pal": 5,
+  "special": false
+ },
+ {
+  "start": 149.035,
+  "end": 150.47,
+  "text": "*DEXEY!*",
+  "section": "outro",
+  "pal": 2,
+  "special": true
+ }
+]
