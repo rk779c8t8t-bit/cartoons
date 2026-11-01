@@ -1,0 +1,5 @@
+clip/lyrics.txt
+clip/timing.json
+clip/cards.json
+clip/toks*.json
+__pycache__/
