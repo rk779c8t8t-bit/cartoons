@@ -84,6 +84,8 @@ class Renderer:
         for it in items:
             if it.get("kind") == "rect":
                 self.text.draw_rect(it); continue
+            if it.get("kind") == "img":
+                self.text.draw_image(it); continue
             p = prev_map.get(it.get("key"))
             variants = [it]
             if p is not None:
@@ -275,7 +277,17 @@ def main():
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     audio = os.path.join(ROOT, tl["audio"])
     cmd = ["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", lst]
-    if not a.no_audio:
+    tail = tl.get("outro", {}).get("echo_tail", 0)
+    if not a.no_audio and tail > 0 and a.start == 0:
+        # song is kept untouched; after it ends we append an echo tail built from its last phrase
+        ae = tl["outro"]["audio_end"]; seg = tl["outro"].get("echo_source", 0.65)
+        fc = (f"[1:a]asplit=2[dry][src];"
+              f"[src]atrim=start={ae - seg},asetpts=PTS-STARTPTS,apad=pad_dur={tail + 0.5},"
+              f"aecho=0.8:0.9:190|380|570|760|950:0.55|0.4|0.28|0.18|0.1,atrim=start={seg},asetpts=PTS-STARTPTS,"
+              f"lowpass=f=4500,afade=t=out:st=0.1:d={tail - 0.1},atrim=end={tail}[tail];"
+              f"[dry][tail]concat=n=2:v=0:a=1[aout]")
+        cmd += ["-i", audio, "-filter_complex", fc, "-map", "0:v", "-map", "[aout]", "-c:a", "aac", "-b:a", "320k"]
+    elif not a.no_audio:
         # original AAC stream is copied bit-exact (no re-encode, no speed/pitch change)
         cmd += ["-ss", f"{a.start}", "-i", audio, "-map", "0:v", "-map", "1:a", "-c:a", "copy" if a.start == 0 else "aac",
                 "-shortest"]

@@ -1,6 +1,7 @@
 {
   "_comment": "Timings in seconds from the start of audio/fragment.m4a. Edit 't' to move a word; edit 'text' to change wording (layout auto-fits). Found with vocal separation + ASR word timestamps (GigaAM/Whisper) + vocal onsets.",
-  "video": {"width": 1080, "height": 1920, "fps": 60, "end": 17.10},
+  "video": {"width": 1080, "height": 1920, "fps": 60, "end": 18.40},
+  "outro": {"_comment": "Song ends at audio_end; the video continues for echo_tail seconds with an echo of the last phrase while the picture fades out. Set echo_tail to 0 to end exactly with the song.", "audio_end": 17.089, "echo_tail": 1.31, "echo_source": 0.65},
   "audio": "audio/fragment.m4a",
   "lines": [
     {"id": "I", "artist": "SLAVA MARLOW", "text": "Ты горишь как огонь…", "words": [

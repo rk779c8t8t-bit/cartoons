@@ -15,6 +15,7 @@ for _ln in TL["lines"]:
     for _w in _ln["words"]:
         T[_w["id"]] = _w["t"]; TXT[_w["id"]] = _w["text"]
 END = TL["video"]["end"]
+AEND = TL.get("outro", {}).get("audio_end", END)
 FB = FontBank()
 CX, CY = 540.0, 960.0
 
@@ -146,7 +147,9 @@ def _events():
     t = T["h_vareniki"]; sparks(t, CX, 1330, 60, speed=(200, 900), ang=(-90, 200), life=(0.3, 0.8))
     if "h_haha" in T:
         for k in range(3): shake(T["h_haha"] + k * 0.16, 9, 0.06); flash(T["h_haha"] + k * 0.16, 0.08, WARM, 0.04)
-    flash(END - 0.1, 0.3, ORANGE, 0.05)
+    # outro: words burn away into rising embers
+    sparks(AEND + 0.2, CX, 1100, 380, speed=(40, 380), ang=(-90, 120), g=-260, drag=1.2, life=(0.6, 1.3),
+           size=(1, 3), area=(900, 700), delay=0.7, streak=0.05, heat=0.85)
 
 _events()
 
@@ -376,7 +379,7 @@ def v5(t, S):
         S["items"].append(W("e_echo", size=96 * lerp(1.4, 1, out_expo(a / 0.15)) * sc, x=CX, y=1440, alpha=al * smooth(a / 0.04),
                             style="gold", outline=3, fill=0.15, glow=0.35, glow_col=GOLD, ghosts=gh, z=2))
     # foam: from the bottom while the line plays, plus a burst out of ПЕНИТСЯ
-    S["bubbles"] = [dict(t0=T["e_sok"] - 0.3, t1=t1, x0=80, x1=1000, y0=1980, ysp=40, rise=380, n=90, seed=3, amount=0.9 * al, rmax=26),
+    S["bubbles"] = [dict(t0=T["e_bokal"], t1=t1, x0=400, x1=680, y0=1560, ysp=40, rise=420, n=90, seed=3, amount=0.9 * al, rmax=20),
                     dict(t0=T["e_penitsa"], t1=t1, x0=200, x1=880, y0=1300, ysp=120, rise=260, n=130, seed=4, amount=1.3 * al, rmax=18, front=True)]
     S["bg"]["red"] = 0.22; S["bg"]["underlight"] = 0.3
 
@@ -456,7 +459,9 @@ def v7(t, S):
 def v8(t, S):
     t0 = LINE_START["V8"]
     if t < t0 - 0.01: return
-    end_pop = in_cubic((t - (END - 0.12)) / 0.12) if "h_haha" not in T else 0
+    end_pop = 0.0
+    drift = 140 * in_out_cubic((t - (AEND - 0.15)) / (END - AEND))   # everything floats up after the song
+    dis = clamp((t - (AEND + 0.15)) / 0.85)                            # ...and burns away
     words = (("h_pod", 400, 760, 170, -6, "white", "unb"), ("h_pesenki", CX, 950, None, 3, "fire", "unb"),
              ("h_pro", 680, 1140, 170, 5, "white", "unb"), ("h_vareniki", CX, 1340, None, -3, "white", "dela"))
     hop_all = 0.0
@@ -474,16 +479,20 @@ def v8(t, S):
         txt = D(w)
         letters = [dict(dy=-0.08 * abs(math.sin(t * 7 + i * 0.8)) * (w == "h_vareniki"), rot=6 * math.sin(t * 6 + i)) for i in range(len(txt))]
         S["items"].append(W(w, font=font, size=sz * lerp(0.2, 1, sp) * (1 - end_pop), sx=1 / squash, sy=squash,
-                            x=x, y=y - 120 * (1 - out_back(a / 0.3, 2.5)) - hop_all, rot=r + 8 * math.sin(t * 4 + y),
+                            x=x, y=y - 120 * (1 - out_back(a / 0.3, 2.5)) - hop_all - drift, rot=r + 8 * math.sin(t * 4 + y),
                             letters=letters, alpha=smooth(a / 0.03) * (1 - vanish), style=st, bevel=0.35, depth=6,
                             depth_vec=(0, 5), depth_col=(0.3, 0.05, 0.0), outline=0, glow=0.3 if st == "white" else 0.8,
-                            glow_col=FIRE, z=2))
+                            glow_col=FIRE, dissolve=dis, z=2))
     if "h_haha" in T:
         a = t - T["h_haha"]
         if a >= 0:
             S["items"].append(W("h_haha", size=fit("h_haha", 700, 150), x=CX, y=1560 - hop_all, alpha=smooth(a / 0.03) * (1 - vanish),
                                 style="hot", heat=0.9, glow=0.6, glow_col=FIRE, z=3))
-    S["fade"] = 1 - 0.5 * smooth((t - (END - 0.05)) / 0.05)
+    o = smooth((t - AEND) / (END - AEND))
+    S["cam"]["zoom"] *= 1 + 0.07 * o
+    S["bg"]["red"] = 0.16 + 0.25 * math.sin(math.pi * o)   # last warm breath, then dark
+    S["embers"].update(amount=0.35 + 0.5 * o, count=0.45 + 0.5 * o, speed=0.7)
+    S["fade"] = 1 - smooth((t - (END - 0.55)) / 0.55)
 
 
 # ====================================================================== frame
@@ -493,7 +502,7 @@ def frame(t):
              bg=dict(red=0.16, smoke=0.3, flames=0.0, underlight=0.15, bright=1.0, smoke_speed=0.6),
              embers=dict(amount=0.35, count=0.45, speed=1.0), heat=None, rings=[], puffs=PUFFS, fade=1.0, bloom=0.8,
              bubbles=[])
-    for fn in (intro, v1, v2, v3, v4, v5, v6, v7, v8):
+    for fn in (intro, v1, v2, v3, v4, v5, v6, v7, v8, pictures):
         fn(t, S)
     S["cam"]["y"] += 70
     k = kick(t)
@@ -522,3 +531,96 @@ def frame(t):
             S["rings"].append((x, y, maxr * out_expo(f * 0.8), th * (1 + 1.5 * f), 0.6 * br * (1 - f) ** 4, dist * (1 - f) ** 1.5))
     S["glitch"] = min(S["glitch"], 1.0)
     return S
+
+
+# ====================================================================== pictures
+def img(key, name, x, y, size, rot=0.0, alpha=1.0, glow=0.25, glow_col=FIRE, z=0, shadow=0.55, **kw):
+    d = dict(kind="img", key=key, name=name, x=x, y=y, size=size, rot=rot, alpha=alpha, glow=glow, glow_col=glow_col,
+             z=z, shadow=shadow)
+    d.update(kw); return d
+
+
+def pic(S, t, key, name, t_in, t_out, x, y, size, rot=0.0, bob=1.0, enter=0.35, ph=0.0, exit_=0.14, **kw):
+    """Spring pop-in, gentle float, quick pop-out. Returns (scale, alpha) or None."""
+    a = t - t_in
+    if a < 0 or t > t_out + exit_: return None
+    e = in_cubic((t - t_out) / exit_)
+    sc = lerp(0.0, 1.0, out_back(a / enter, 2.4)) * (1 - 0.85 * e) * (1 + 0.05 * kick(t))
+    al = smooth(a / 0.05) * (1 - e)
+    S["items"].append(img(key, name, x, y + 14 * bob * math.sin(t * 3.1 + ph), size * sc,
+                          rot=rot + 6 * bob * math.sin(t * 2.3 + ph) + lerp(-25, 0, out_expo(a / 0.4)), alpha=al, **kw))
+    return sc, al
+
+
+def pictures(t, S):
+    # --- intro: the fire itself is the opening flash, then rises above ГОРИШЬ
+    if t < 2.62:
+        a = t
+        up = out_expo((t - T["i_gorish"]) / 0.3)
+        blow = in_cubic((t - 2.42) / 0.16)
+        size = lerp(lerp(60, 230, out_back(a / 0.3, 2.0)), 330, up) * (1 + 0.06 * math.sin(t * 17) + 0.08 * kick(t)) * (1 + 3 * blow)
+        S["items"].append(img("p_fire", "fire", CX, lerp(900, 320, up) - 900 * blow, size, rot=4 * math.sin(t * 9),
+                              alpha=1 - smooth((t - 2.47) / 0.1), glow=0.9, z=0))
+    # --- V1: burning heart answers "я горю тоже"
+    pic(S, t, "p_heart", "heartfire", T["a_goryu"], LINE_START["V2"] - 0.1, CX, 1560, 300, glow=0.6)
+    # --- V2: money flies on ОГОНЬ, diamond on ДОРОЖЕ
+    for k, (x0, x1, r) in enumerate(((-150, 300, -20), (1230, 790, 20))):
+        a = t - (T["b_ogon"] + 0.06 * k)
+        if 0 <= a and t < LINE_START["V3"] - 0.06:
+            f = out_expo(a / 0.45)
+            S["items"].append(img("p_money%d" % k, "money", lerp(x0, x1, f), lerp(1750, 1600, f) + 12 * math.sin(t * 4 + k),
+                                  230, rot=r + 10 * math.sin(t * 3 + k), alpha=smooth(a / 0.05), glow=0.2, z=0))
+    r = pic(S, t, "p_gem", "gem", T["b_dorozhe"], LINE_START["V3"] - 0.1, CX, 300, 300, glow=0.5, glow_col=(0.5, 0.8, 1.0))
+    # --- V3: studio mic at "у Славы", school + backpack falling with ШКОЛУ
+    pic(S, t, "p_mic", "mic", T["c_slavy"], T["c_zavtra"] - 0.03, 840, 330, 250, rot=-18, exit_=0.03)
+    pic(S, t, "p_school", "school", T["c_zavtra"], LINE_START["V4"] - 0.04, CX, 320, 270, exit_=0.04)
+    a = t - T["c_shkolu"]
+    if a >= 0 and t < LINE_START["V4"] - 0.02:
+        tf, th = 7.56, 7.72
+        fall = in_cubic((t - tf) / (th - tf))
+        bounce = abs(math.exp(-max(0, t - th) / 0.05) * math.sin(max(0, t - th) * 55) * 40) * (t > th)
+        S["items"].append(img("p_bag", "backpack", lerp(900, 870, fall), lerp(850, 1640, fall) - bounce,
+                              230 * out_back(a / 0.25, 2.2), rot=lerp(8, 38, fall), z=3))
+    # --- V4: laptop shakes while РАБОТАЮ is typed
+    a = t - T["d_rabotayu"]
+    if a >= 0 and t < LINE_START["V5"]:
+        typing = a < 0.42
+        jx = jitter(t, 900, 30) * 6 * typing
+        e = in_cubic((t - (LINE_START["V5"] - 0.08)) / 0.08)
+        S["items"].append(img("p_laptop", "laptop", 830 + jx, 690 + jitter(t, 901, 30) * 4 * typing,
+                              270 * out_back(a / 0.25, 2.2) * (1 + 0.12 * math.exp(-max(0, a - 0.42) / 0.1) * (not typing)) * (1 - e),
+                              rot=-8, alpha=1 - e, glow=0.2 + 0.8 * math.exp(-max(0, a - 0.42) / 0.15) * (not typing), z=1))
+    # --- V5: champagne glass; the foam rises out of it
+    pic(S, t, "p_glass", "glass", T["e_bokal"], LINE_START["V6"] - 0.08, CX, 1610, 380, glow=0.35, glow_col=GOLD, bob=0.6)
+    # --- V6: cool face, crazy face doubles on (Беникал)
+    pic(S, t, "p_cool", "cool", T["f_snova"], LINE_START["V7"] - 0.1, 850, 330, 250, rot=12)
+    r = pic(S, t, "p_crazy", "crazy", T["f_benikal"], LINE_START["V7"] - 0.1, 230, 1730, 240, rot=-10, ph=1.0)
+    a = t - T["f_echo"]
+    if r and a >= 0:
+        sp = out_expo(a / 0.25) * 90
+        S["items"].append(img("p_crazy2", "crazy", 230 + sp, 1730 - sp * 0.3, 240 * r[0], rot=10, alpha=0.55 * r[1],
+                              tint=ORANGE, tint_amt=0.6, z=-1, shadow=0))
+    # --- V7: an orange vortex spins behind the rotating text; faces react
+    a = t - T["g_oni"]
+    if a >= 0 and t < LINE_START["V8"]:
+        e = smooth((t - (LINE_START["V8"] - 0.1)) / 0.1)
+        S["items"].append(img("p_vortex", "cyclone", CX, CY, 900 * out_cubic(a / 0.4) * (1 + 0.05 * kick(t)),
+                              rot=-(120 * a + 160 * a * a) if t < T["g_a"] else -(120 * (T["g_a"] - T["g_oni"]) + 160 * (T["g_a"] - T["g_oni"]) ** 2),
+                              alpha=0.3 * (1 - e), tint=(1.0, 0.45, 0.08), tint_amt=1.0, glow=0.25, z=-2, shadow=0, blur=1.5))
+    pic(S, t, "p_dizzy", "dizzy", T["g_vert"], T["g_a"] - 0.02, CX, 250, 240, exit_=0.05)
+    pic(S, t, "p_scream", "scream", T["g_a"], LINE_START["V8"] - 0.08, CX, 1660, 300, enter=0.12)
+    # --- V8: music notes and bouncing dumplings, then everything drifts up and fades
+    out_o = smooth((t - (AEND + 0.1)) / 0.8)
+    drift = 140 * in_out_cubic((t - (AEND - 0.15)) / (END - AEND))
+    a = t - T["h_pesenki"]
+    if a >= 0:
+        S["items"].append(img("p_notes", "notes", CX + 30 * math.sin(t * 2), 300 + 16 * math.sin(t * 3) - drift,
+                              250 * out_back(a / 0.35, 2.2), rot=8 * math.sin(t * 2.5), alpha=smooth(a / 0.05) * (1 - out_o), z=0))
+    for k, (x, y) in enumerate(((230, 1640), (CX, 1700), (850, 1640))):
+        a = t - (T["h_vareniki"] + 0.09 * k)
+        if a < 0: continue
+        hop = abs(math.sin(a * 7 + k)) * 60 * math.exp(-max(0, a - 0.2) / 0.9)
+        sq = 1 + 0.25 * math.exp(-a / 0.15) * math.sin(a * 35)
+        S["items"].append(img("p_dump%d" % k, "dumpling", x, y - hop - drift * (1.2 + 0.3 * k),
+                              270 * out_back(a / 0.3, 2.6) * (1 - 0.3 * out_o), sx=1 / sq, sy=sq,
+                              rot=(k - 1) * 14 + 10 * math.sin(t * 3 + k) + 40 * out_o * (k - 1), alpha=1 - out_o, z=0))

@@ -333,6 +333,56 @@ class TextLayer:
         if it.get("glow", 0) > 0:
             self.glow[y0:y1, x0:x1] += A[..., None] * (np.array(it.get("glow_col", col), np.float32) * it["glow"])
 
+    _imgs = {}
+
+    def _image(self, name, size):
+        q = int(round(1.08 ** round(math.log(max(size, 8)) / math.log(1.08))))
+        k = (name, q)
+        if k not in self._imgs:
+            im = cv2.imread(os.path.join(ROOT, "images", name + ".png"), cv2.IMREAD_UNCHANGED)
+            im = cv2.cvtColor(im, cv2.COLOR_BGRA2RGBA).astype(np.float32) / 255.0
+            interp = cv2.INTER_AREA if q < im.shape[1] else cv2.INTER_CUBIC
+            im = np.clip(cv2.resize(im, (q, q), interpolation=interp), 0, 1)
+            pad = max(4, q // 6)
+            im = cv2.copyMakeBorder(im, pad, pad, pad, pad, cv2.BORDER_CONSTANT, value=0)
+            a = im[..., 3]
+            self._imgs[k] = (im[..., :3] * a[..., None], a, q)
+        return self._imgs[k]
+
+    def draw_image(self, it):
+        """Picture sprite (premultiplied RGBA) with drop shadow, glow and optional colour tint."""
+        if it["alpha"] <= 0.003 or it["size"] < 4: return
+        rgb, a, q = self._image(it["name"], it["size"] * max(abs(it.get("sx", 1)), abs(it.get("sy", 1))))
+        h, w = a.shape
+        k = it["size"] / q
+        M = M_T(it["x"], it["y"]) @ M_R(it.get("rot", 0)) @ M_S(k * it.get("sx", 1), k * it.get("sy", 1)) @ M_T(-w / 2, -h / 2)
+        c = M[:2] @ np.array([[0, w, 0, w], [0, 0, h, h], [1, 1, 1, 1]], np.float64)
+        sh = it.get("shadow", 0.5)
+        pad = int(it["size"] * 0.12) + 4
+        x0 = max(0, int(c[0].min()) - pad); x1 = min(self.W, int(c[0].max()) + pad)
+        y0 = max(0, int(c[1].min()) - pad); y1 = min(self.H, int(c[1].max()) + pad + int(it["size"] * 0.08))
+        if x1 - x0 < 2 or y1 - y0 < 2: return
+        A2 = M[:2].copy(); A2[0, 2] -= x0; A2[1, 2] -= y0
+        bw, bh = x1 - x0, y1 - y0
+        al = cv2.warpAffine(a, A2, (bw, bh), flags=cv2.INTER_LINEAR) * it["alpha"]
+        col = cv2.warpAffine(rgb, A2, (bw, bh), flags=cv2.INTER_LINEAR) * it["alpha"]
+        if it.get("tint") is not None and it.get("tint_amt", 0) > 0:
+            lum = (col[..., 0] * 0.3 + col[..., 1] * 0.55 + col[..., 2] * 0.15)[..., None] * 1.6
+            tc = np.minimum(lum * np.array(it["tint"], np.float32), al[..., None])
+            col = col + (tc - col) * it["tint_amt"]
+        if it.get("blur", 0) > 0.3:
+            al = cv2.GaussianBlur(al, (0, 0), it["blur"]); col = cv2.GaussianBlur(col, (0, 0), it["blur"])
+        R = self.rgb[y0:y1, x0:x1]; Aa = self.a[y0:y1, x0:x1]
+        if sh > 0:
+            sd = cv2.GaussianBlur(al, (0, 0), max(2, it["size"] * 0.04))
+            Ms = np.float32([[1, 0, 0], [0, 1, it["size"] * 0.06]])
+            sd = cv2.warpAffine(sd, Ms, (bw, bh)) * sh
+            R *= (1 - sd)[..., None]; Aa *= (1 - sd); Aa += sd
+        R *= (1 - al)[..., None]; R += col
+        Aa *= (1 - al); Aa += al
+        if it.get("glow", 0) > 0:
+            self.glow[y0:y1, x0:x1] += al[..., None] * (np.array(it.get("glow_col", (1, 0.4, 0.05)), np.float32) * it["glow"])
+
     def _color(self, it, gx, gy, heat, t, mask, yr):
         st = it["style"]
         vv = (gy - yr[0]) / max(1, yr[1] - yr[0])
