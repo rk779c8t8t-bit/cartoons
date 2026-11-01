@@ -8,13 +8,13 @@ import json, math, random, re, subprocess, sys
 import numpy as np, cv2
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
-W, H = 576, 1022           # output frame (same as reference)
-BY, BW, BH = 349, 576, 324  # 16:9 picture band inside the frame
+W, H = 1080, 1920          # full-screen 9:16
+BY, BW, BH = 0, 1080, 1920  # picture fills the whole frame
 FPS = 30
 FONT = "fonts/fonts_Rubik.ttf"
 EMOJI_FONT = "/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf"
 BG = "bg.mp4"
-MAXW = 480  # safe text width (room for zoom, tilt and letter overshoot)
+MAXW = 900  # safe text width (room for zoom, tilt and letter overshoot)
 
 SMALL = set("и в во на но а я ты мы не так то что же как это мне тебя со из за по до у о ведь чё а ли бы был было".split())
 EMOJI = {"ковбой": "🤠", "зеркало": "🪞", "москву": "🏙", "красота": "💅", "порежу": "🔪", "выстрелишь": "🔫",
@@ -70,7 +70,7 @@ def build_cards(timing, song_len):
         c["end"] = min(lim, cards[i + 1]["words"][0]["t"] - 0.03) if i + 1 < len(cards) else min(lim + 1, song_len)
         c["align"] = rnd.choice(["c", "c", "l"])
         c["rot0"] = rnd.uniform(-3, 3); c["rot1"] = c["rot0"] + rnd.uniform(-2, 2)
-        c["dy"] = rnd.uniform(-14, 14)
+        c["dy"] = rnd.uniform(-120, 120)
         layout(c)
     return cards
 
@@ -84,7 +84,7 @@ def layout(card):
     ws = card["words"]
     content = [w for w in ws if key(w["w"]) not in SMALL and len(key(w["w"])) > 3]
     card["hero"] = max(content, key=lambda w: len(key(w["w"]))) if content else None
-    for base in range(84, 24, -2):
+    for base in range(170, 40, -3):
         rows, row, rw = [], [], 0
         sp = base * 0.22
         for w in ws:
@@ -95,15 +95,15 @@ def layout(card):
         rows.append(row)
         hts = [max(s for _, s, _, _ in r) * 0.80 for r in rows]
         widths = [sum(x[3] for x in r) + sp * (len(r) - 1) for r in rows]
-        if len(rows) <= 3 and max(widths) <= MAXW and sum(hts) + base * 0.12 * (len(rows) - 1) <= 270: break
+        if len(rows) <= 4 and max(widths) <= MAXW and sum(hts) + base * 0.12 * (len(rows) - 1) <= 1000: break
     # absolute positions (band coords), letters with their own anchor
     total_h = sum(hts) + base * 0.12 * (len(rows) - 1)
     y = BH / 2 - total_h / 2 + card["dy"]
-    y = min(max(y, 20), BH - 20 - total_h)
+    y = min(max(y, 160), BH - 160 - total_h)
     glyphs = []
     for r, h in zip(rows, hts):
         y += h; width = sum(wd for _, _, _, wd in r) + base * 0.22 * (len(r) - 1)
-        x = (BW - width) / 2 if card["align"] == "c" else 22
+        x = (BW - width) / 2 if card["align"] == "c" else 90
         for w, s, txt, wd in r:
             f = font(s); n = len(txt)
             for i, ch in enumerate(txt):
@@ -156,7 +156,7 @@ def composite(bg, layer):
     out = bg.astype(np.float32)
     if layer is not None:
         a = layer[..., 3].astype(np.float32) / 255
-        sh = cv2.GaussianBlur(np.roll(np.roll(a, 4, 0), 3, 1), (0, 0), 3.0) * 0.35
+        sh = cv2.GaussianBlur(np.roll(np.roll(a, 8, 0), 6, 1), (0, 0), 6.0) * 0.35
         out *= (1 - sh[..., None])
         out = out * (1 - a[..., None]) + layer[..., :3].astype(np.float32) * a[..., None]
     return out
@@ -164,11 +164,13 @@ def composite(bg, layer):
 class Background:
     def __init__(self, path):
         self.cap = cv2.VideoCapture(path); self.n = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT)); self.pos = -1
-        rng = np.random.default_rng(3); self.grain = [rng.normal(0, 5, (BH, BW, 1)).astype(np.float32) for _ in range(6)]
+        rng = np.random.default_rng(3); self.grain = [cv2.resize(rng.normal(0, 5, (BH // 2, BW // 2)).astype(np.float32), (BW, BH))[..., None] for _ in range(6)]
     def frame(self, idx):
         idx %= self.n
         if idx != self.pos + 1: self.cap.set(cv2.CAP_PROP_POS_FRAMES, idx)
         ok, f = self.cap.read(); self.pos = idx
+        h, w = f.shape[:2]; cw = int(round(h * W / H)); x0 = (w - cw) // 2   # 9:16 cover crop of the 16:9 plate
+        f = cv2.resize(f[:, x0:x0 + cw], (W, H), interpolation=cv2.INTER_CUBIC)
         return cv2.cvtColor(f, cv2.COLOR_BGR2RGB)
 
 def render_frame(bg, cards, t, fi):
@@ -182,9 +184,7 @@ def render_frame(bg, cards, t, fi):
                 a = l[..., 3:4] / 255.0
                 layer = (layer * (1 - a) + l * a).astype(np.uint8)
     out = composite(band, layer) + bg.grain[fi % 6]
-    frame = np.zeros((H, W, 3), np.uint8)
-    frame[BY:BY + BH] = np.clip(out, 0, 255).astype(np.uint8)
-    return frame
+    return np.clip(out, 0, 255).astype(np.uint8)
 
 def main():
     audio, out = sys.argv[1], sys.argv[2]
@@ -199,7 +199,7 @@ def main():
         return
     n = int(math.ceil(song * FPS))
     p = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
-                          "-i", audio, "-map", "0:v", "-map", "1:a", "-c:v", "libx264", "-crf", "16", "-preset", "slow",
+                          "-i", audio, "-map", "0:v", "-map", "1:a", "-c:v", "libx264", "-crf", "21", "-preset", "medium", "-tune", "grain",
                           "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "256k", "-movflags", "+faststart", "-t", f"{song:.3f}", out],
                          stdin=subprocess.PIPE)
     for fi in range(n):
