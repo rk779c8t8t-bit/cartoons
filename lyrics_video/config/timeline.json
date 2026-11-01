@@ -1,0 +1,59 @@
+{
+  "_comment": "All timings in seconds from the start of audio/fragment.m4a. Edit 't' (word onset) or 'syl' (syllable onsets) and re-render. Text is shown exactly as written in 'text' (rendered in caps by the style, except Latin 'round…').",
+  "video": {"width": 1080, "height": 1920, "fps": 60, "end": 16.21},
+  "audio": "audio/fragment.m4a",
+  "drop": 1.36,
+  "lines": [
+    {"id": "L1", "text": "Ты горишь, как огонь, я, у меня агония", "words": [
+      {"id": "l1_ty",     "text": "Ты",      "t": 0.15},
+      {"id": "l1_gorish", "text": "горишь,", "t": 0.62, "syl": [0.62, 0.95]},
+      {"id": "l1_kak",    "text": "как",     "t": 1.36},
+      {"id": "l1_ogon",   "text": "огонь,",  "t": 1.52, "syl": [1.52, 1.72]},
+      {"id": "l1_ya",     "text": "я,",      "t": 2.08},
+      {"id": "l1_u",      "text": "у",       "t": 2.48},
+      {"id": "l1_menya",  "text": "меня",    "t": 2.74},
+      {"id": "l1_agonia", "text": "агония",  "t": 3.12, "syl": [3.12, 3.31, 3.57, 3.69]}
+    ]},
+    {"id": "L2", "text": "Это любовь или это паранойя?", "words": [
+      {"id": "l2_eto1",     "text": "Это",     "t": 4.03},
+      {"id": "l2_lubov",    "text": "любовь",  "t": 4.30},
+      {"id": "l2_ili",      "text": "или",     "t": 5.24},
+      {"id": "l2_eto2",     "text": "это",     "t": 5.60},
+      {"id": "l2_paranoia", "text": "паранойя", "t": 5.86, "syl": [5.86, 6.02, 6.22, 6.45]},
+      {"id": "l2_q",        "text": "?",       "t": 7.00}
+    ]},
+    {"id": "L3", "text": "Ля, ля-ля (Ля, ля-ля)", "words": [
+      {"id": "l3_la1",  "text": "Ля,",  "t": 7.08},
+      {"id": "l3_la2",  "text": "ля-",  "t": 7.45},
+      {"id": "l3_la3",  "text": "ля",   "t": 7.74},
+      {"id": "l3_ela1", "text": "(Ля,", "t": 8.25},
+      {"id": "l3_ela2", "text": "ля-",  "t": 8.62},
+      {"id": "l3_ela3", "text": "ля)",  "t": 9.00}
+    ]},
+    {"id": "L4", "text": "Ты горишь, как огонь, я (Ля, ля-ля; round…)", "words": [
+      {"id": "l4_ty",     "text": "Ты",      "t": 9.75},
+      {"id": "l4_gorish", "text": "горишь,", "t": 9.95},
+      {"id": "l4_kak",    "text": "как",     "t": 10.50},
+      {"id": "l4_ogon",   "text": "огонь,",  "t": 10.68},
+      {"id": "l4_ya",     "text": "я",       "t": 10.95},
+      {"id": "l4_bla1",   "text": "(Ля,",    "t": 11.30},
+      {"id": "l4_bla2",   "text": "ля-",     "t": 11.52},
+      {"id": "l4_bla3",   "text": "ля;",     "t": 11.78},
+      {"id": "l4_round",  "text": "round…)", "t": 12.05}
+    ]},
+    {"id": "L5", "text": "Ты горишь, как огонь, я, у меня агония", "words": [
+      {"id": "l5_ty",     "text": "Ты",      "t": 12.32},
+      {"id": "l5_gorish", "text": "горишь,", "t": 12.82, "syl": [12.82, 13.05]},
+      {"id": "l5_kak",    "text": "как",     "t": 13.50},
+      {"id": "l5_ogon",   "text": "огонь,",  "t": 13.67, "syl": [13.67, 13.86]},
+      {"id": "l5_ya",     "text": "я,",      "t": 14.25},
+      {"id": "l5_u",      "text": "у",       "t": 14.63},
+      {"id": "l5_menya",  "text": "меня",    "t": 14.90},
+      {"id": "l5_agonia", "text": "агония",  "t": 15.29, "syl": [15.29, 15.47, 15.66, 15.84]}
+    ]}
+  ],
+  "not_in_audio": {
+    "_comment": "These lines are in the brief but are NOT sung in the supplied 16.2 s file (it ends on 'агония'). Supply a longer audio file and add them as L6..L8 with timings.",
+    "lines": ["Это любовь или это паранойя?", "Ля, ля-ля (Ля, ля-ля)", "Ты горишь, как огонь, я"]
+  }
+}
