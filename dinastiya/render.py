@@ -83,6 +83,23 @@ def emoji_for(bare):
     return None
 
 
+def load_timeline():
+    """Use aligned timings from align.py when available."""
+    p = os.path.join(HERE, "timeline.json")
+    if not os.path.exists(p):
+        return None
+    screens = json.load(open(p))
+    if not screens or "word_times" not in screens[0]:
+        return None
+    for sc in screens:
+        toks = parse_tokens(sc["text"])
+        for t, at in zip(toks, sc["word_times"]):
+            t["at"] = at
+            t["emoji"] = emoji_for(t["bare"])
+        sc["toks"] = toks
+    return screens
+
+
 def build_screens(beats):
     beats = np.array(beats)
 
@@ -383,9 +400,7 @@ def main():
         ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", song]))
     dur = float(args[args.index("--preview") + 1]) if "--preview" in args else dur_total - start
     beats = load_beats(song)
-    screens = build_screens(beats)
-    json.dump([{k: v for k, v in s.items() if k != "toks"} for s in screens],
-              open(os.path.join(HERE, "timeline.json"), "w"), ensure_ascii=False, indent=1)
+    screens = load_timeline() or build_screens(beats)
     frames = range(int(start * FPS), int((start + dur) * FPS))
     ff = subprocess.Popen([
         "ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
