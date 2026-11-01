@@ -1,0 +1,76 @@
+{
+  "_comment": "Timings in seconds from the start of audio/fragment.m4a. Edit 't' to move a word; edit 'text' to change wording (layout auto-fits). Found with vocal separation + ASR word timestamps (GigaAM/Whisper) + vocal onsets.",
+  "video": {"width": 1080, "height": 1920, "fps": 60, "end": 17.10},
+  "audio": "audio/fragment.m4a",
+  "lines": [
+    {"id": "I", "artist": "SLAVA MARLOW", "text": "Ты горишь как огонь…", "words": [
+      {"id": "i_ty",     "text": "Ты",     "t": 0.10},
+      {"id": "i_gorish", "text": "горишь", "t": 0.30},
+      {"id": "i_kak",    "text": "как",    "t": 0.98},
+      {"id": "i_ogon",   "text": "огонь…", "t": 1.28}
+    ]},
+    {"id": "V1", "artist": "TOLY SUMMER", "text": "Гори, я горю тоже", "words": [
+      {"id": "a_gori",  "text": "Гори,", "t": 2.60},
+      {"id": "a_ya",    "text": "я",     "t": 3.18},
+      {"id": "a_goryu", "text": "горю",  "t": 3.30},
+      {"id": "a_tozhe", "text": "тоже",  "t": 3.72}
+    ]},
+    {"id": "V2", "text": "Но мой огонь почему-то дороже", "words": [
+      {"id": "b_no",      "text": "Но",          "t": 4.10},
+      {"id": "b_moy",     "text": "мой",         "t": 4.25},
+      {"id": "b_ogon",    "text": "огонь",       "t": 4.52},
+      {"id": "b_pochemu", "text": "почему-то",   "t": 4.82},
+      {"id": "b_dorozhe", "text": "дороже",      "t": 5.45}
+    ]},
+    {"id": "V3", "text": "Ща я у Славы, завтра в школу", "words": [
+      {"id": "c_scha",   "text": "Ща",     "t": 6.00},
+      {"id": "c_ya",     "text": "я",      "t": 6.30},
+      {"id": "c_u",      "text": "у",      "t": 6.40},
+      {"id": "c_slavy",  "text": "Славы,", "t": 6.46},
+      {"id": "c_zavtra", "text": "завтра", "t": 6.97},
+      {"id": "c_v",      "text": "в",      "t": 7.30},
+      {"id": "c_shkolu", "text": "школу",  "t": 7.38}
+    ]},
+    {"id": "V4", "text": "Не ищу славы, я просто работаю", "words": [
+      {"id": "d_ne",      "text": "Не",      "t": 7.80},
+      {"id": "d_ishchu",  "text": "ищу",     "t": 8.05},
+      {"id": "d_slavy",   "text": "славы,",  "t": 8.25},
+      {"id": "d_ya",      "text": "я",       "t": 8.66},
+      {"id": "d_prosto",  "text": "просто",  "t": 8.84},
+      {"id": "d_rabotayu","text": "работаю", "t": 9.24}
+    ]},
+    {"id": "V5", "text": "А, сок в бокальчике пенится (Пенится)", "words": [
+      {"id": "e_a",       "text": "А,",          "t": 9.75},
+      {"id": "e_sok",     "text": "сок",         "t": 10.06},
+      {"id": "e_v",       "text": "в",           "t": 10.38},
+      {"id": "e_bokal",   "text": "бокальчике",  "t": 10.46},
+      {"id": "e_penitsa", "text": "пенится",     "t": 11.02},
+      {"id": "e_echo",    "text": "(Пенится)",   "t": 11.50}
+    ]},
+    {"id": "V6", "text": "Снова всех отэники-беникал (Беникал)", "words": [
+      {"id": "f_snova",  "text": "Снова",     "t": 11.86},
+      {"id": "f_vseh",   "text": "всех",      "t": 12.18},
+      {"id": "f_oteniki","text": "отэники-",  "t": 12.42},
+      {"id": "f_benikal","text": "беникал",   "t": 12.94},
+      {"id": "f_echo",   "text": "(Беникал)", "t": 13.30}
+    ]},
+    {"id": "V7", "text": "Они щас в агонии вертятся (А!)", "words": [
+      {"id": "g_oni",    "text": "Они",      "t": 13.74},
+      {"id": "g_schas",  "text": "щас",      "t": 14.00},
+      {"id": "g_v",      "text": "в",        "t": 14.30},
+      {"id": "g_agonii", "text": "агонии",   "t": 14.40},
+      {"id": "g_vert",   "text": "вертятся", "t": 14.92},
+      {"id": "g_a",      "text": "(А!)",     "t": 15.33}
+    ]},
+    {"id": "V8", "text": "Под песенки про вареники", "words": [
+      {"id": "h_pod",     "text": "Под",      "t": 15.62},
+      {"id": "h_pesenki", "text": "песенки",  "t": 15.80},
+      {"id": "h_pro",     "text": "про",      "t": 16.24},
+      {"id": "h_vareniki","text": "вареники", "t": 16.52}
+    ]}
+  ],
+  "not_in_audio": {
+    "_comment": "'(Ха-ха-ха)' is in the lyrics but the supplied 17.09 s file ends on 'вареники'. With a longer file add {\"id\": \"h_haha\", \"text\": \"(Ха-ха-ха)\", \"t\": ...} to V8; scenes.py already animates it (three hops + vanish) when present.",
+    "words": ["(Ха-ха-ха)"]
+  }
+}
