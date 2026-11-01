@@ -19,10 +19,10 @@ FONT = os.path.join(HERE, "fonts", "Rubik[wght].ttf")
 EMOJI_FONT = "/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf"
 
 W, H, FPS = 720, 1280, 30
-BW, BH = 720, 405
+BW, BH = 720, 1280
 BY = (H - BH) // 2
-SIZES = {"big": 66, "mid": 48, "small": 30}
-MAXW, MAXH = 620, 330
+SIZES = {"big": 96, "mid": 66, "small": 42}
+MAXW, MAXH = 640, 900
 
 PALETTES = [
     ((255, 214, 40), (255, 150, 25)),   # yellow
@@ -286,9 +286,9 @@ def draw_rays(band, t, pal):
     c = tuple(min(255, v + 40) for v in PALETTES[pal][0]) + (90,)
     lay = Image.new("RGBA", band.size, (0, 0, 0, 0))
     d = ImageDraw.Draw(lay)
-    cx, cy, R = BW / 2, BH / 2, 700
-    for i in range(12):
-        a0 = t * 0.6 + i * math.pi / 6
+    cx, cy, R = BW / 2, BH / 2, 1600
+    for i in range(16):
+        a0 = t * 0.6 + i * math.pi / 8
         d.polygon([(cx, cy), (cx + R * math.cos(a0), cy + R * math.sin(a0)),
                    (cx + R * math.cos(a0 + 0.22), cy + R * math.sin(a0 + 0.22))], fill=c)
     band.alpha_composite(lay)
@@ -300,9 +300,9 @@ class Renderer:
         self.beats = np.array(beats)
         self.layouts = {}
         rnd = random.Random(7)
-        self.stars = [(rnd.random() * BW, rnd.random() * BH, rnd.random() * 6, 6 + rnd.random() * 10)
-                      for _ in range(16)]
-        self.floaters = [(rnd.random(), rnd.random(), 0.5 + rnd.random()) for _ in range(6)]
+        self.stars = [(rnd.random() * BW, rnd.random() * BH, rnd.random() * 6, 8 + rnd.random() * 14)
+                      for _ in range(34)]
+        self.floaters = [(rnd.random(), rnd.random(), 0.5 + rnd.random()) for _ in range(12)]
 
     def screen_at(self, t):
         for i, sc in enumerate(self.screens):
@@ -343,15 +343,15 @@ class Renderer:
         if emo and not sc["special"]:
             for fx, fy, sp in self.floaters:
                 yy = (fy * BH * 1.4 - since * 60 * sp) % (BH * 1.4) - BH * 0.2
-                im = emoji_img(emo, 34)
+                im = emoji_img(emo, 48)
                 im = im.copy(); im.putalpha(im.getchannel("A").point(lambda v: v * 55 // 100))
                 band.paste(im, (int(fx * (BW - 40)), int(yy)), im)
         if sc["special"] and sc["section"] in ("title", "drop"):
-            crown = emoji_img("👑", 90)
+            crown = emoji_img("👑", 150)
             bob = math.sin(t * 7) * 6
             k = ease_back(since / 0.3)
             c2 = crown.resize((max(1, int(crown.width * k)), max(1, int(crown.height * k))))
-            band.paste(c2, (int(BW / 2 - c2.width / 2), int(38 + bob)), c2)
+            band.paste(c2, (int(BW / 2 - c2.width / 2), int(BH / 2 - 300 + bob)), c2)
         # text, with a quick pop-out at the end of the screen
         left = sc["end"] - t
         out_k = 1 + max(0, 0.1 - left) * 1.5
