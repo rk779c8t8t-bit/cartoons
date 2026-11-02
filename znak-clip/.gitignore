@@ -1,0 +1,7 @@
+node_modules/
+znak_full.mp3
+out/*.png
+out/frames/
+.remotion/
+out/stills/
+out/render.log
