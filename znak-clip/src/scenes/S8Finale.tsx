@@ -3,12 +3,12 @@ import { AbsoluteFill, random, useCurrentFrame } from 'remotion';
 import { Starfield } from '../components/bg/Cosmos';
 import { ZODIAC, ZodiacWheel } from '../components/bg/ZodiacWheel';
 import { Flash, Strobe } from '../components/fx/Flash';
-import { Burst, starPath } from '../components/particles/Sparkles';
+import { Burst, Glitter, starPath } from '../components/particles/Sparkles';
 import { T } from '../components/text/Styles';
 import { TextBlock, Word } from '../components/text/Word';
 import { C, FONT } from '../theme';
-import { BEATS, CUE, SCENES } from '../timing';
-import { beatPulse, easeIn, easeOut, ramp } from '../util';
+import { BEATS, CUE, DURATION, SCENES } from '../timing';
+import { beatPulse, easeIn, easeInOut, easeOut, ramp } from '../util';
 
 /** Signs + stars orbiting in a wide ring around the title. */
 const Orbit: React.FC<{ speed: number; radius: number; frame: number }> = ({ speed, radius, frame }) => (
@@ -96,19 +96,44 @@ const ZodiakTitle: React.FC = () => {
   );
 };
 
+/** A single four-point star that blooms at centre and fades out — the last "знак". */
+const FinalGlint: React.FC<{ after: number }> = ({ after }) => {
+  const k = ramp(after, 18, 50, easeOut);
+  const fade = 1 - ramp(after, 40, 70, easeInOut);
+  if (k <= 0 || fade <= 0) return null;
+  return (
+    <svg width={1080} height={1920} style={{ position: 'absolute', inset: 0, mixBlendMode: 'screen' }}>
+      <defs>
+        <radialGradient id="fg">
+          <stop offset="0%" stopColor="#fff" stopOpacity={0.9} />
+          <stop offset="100%" stopColor={C.pink} stopOpacity={0} />
+        </radialGradient>
+      </defs>
+      <circle cx={540} cy={960} r={260 * k} fill="url(#fg)" opacity={0.5 * fade} />
+      <g transform={`translate(540 960) rotate(${after * 1.5}) scale(${0.4 + k})`} opacity={fade}>
+        <path d={starPath(150, 0.08)} fill="#fff" />
+      </g>
+    </svg>
+  );
+};
+
 export const S8Finale: React.FC = () => {
   const frame = useCurrentFrame();
   const { from } = SCENES.finale;
   const p = beatPulse(frame, 4);
   // wheel speeds up toward the end (speed ramp)
-  const spin = ramp(frame, CUE.zodia, CUE.finalHit, easeIn);
-  const rot = (frame - from) * 0.6 + spin * spin * 260;
+  const spinUp = ramp(frame, CUE.zodia, CUE.finalHit, easeIn);
+  // after the last hit everything coasts down instead of stopping dead
+  const after = Math.max(0, frame - CUE.finalHit);
+  const coast = Math.exp(-after / 18);
+  const spin = frame < CUE.finalHit ? spinUp : coast;
+  const rot = (Math.min(frame, CUE.finalHit) - from) * 0.6 + spinUp * 260 + 40 * (1 - coast) + after * 0.25;
+  const outro = ramp(frame, CUE.finalHit, DURATION, easeInOut);
   const showFirst = frame < CUE.zodia - 2;
   const punch = Math.exp(-Math.max(0, frame - CUE.finalHit) / 5) * (frame >= CUE.finalHit ? 0.18 : 0);
-  const black = ramp(frame, CUE.finalHit + 6, CUE.finalHit + 13);
   return (
     <AbsoluteFill style={{ background: 'radial-gradient(ellipse at 50% 50%, #3a0f5e 0%, #12052a 55%, #05030a 100%)', overflow: 'hidden' }}>
-      <AbsoluteFill style={{ transform: `scale(${1.02 + p * 0.03 + punch})` }}>
+      <AbsoluteFill style={{ transform: `scale(${1.02 + p * 0.03 + punch - outro * 0.14})`, filter: `blur(${outro * 6}px)` }}>
         <Starfield drift={1 + spin * 6} seed="z8" count={150} />
         <AbsoluteFill style={{ opacity: 0.55 + spin * 0.4 }}>
           <ZodiacWheel rotation={rot} cy={960} r={500} glow={1} highlight={spin} />
@@ -146,10 +171,12 @@ export const S8Finale: React.FC = () => {
         <Strobe key={b} at={b} duration={3} peak={0.35} color={C.pink} />
       ))}
       <Strobe at={CUE.ty} duration={4} peak={0.6} />
-      <Burst at={CUE.finalHit} x={540} y={1000} count={140} shape="star" seed="fin" colors={['#fff', C.pink, C.ice, C.lilac]} speed={60} gravity={0.15} life={22} size={14} />
-      <Burst at={CUE.finalHit} x={540} y={1000} count={90} shape="dot" seed="fin2" colors={['#fff', C.blush]} speed={80} gravity={0} life={18} />
-      <Flash at={CUE.finalHit} duration={12} x={540} y={1000} peak={1} />
-      <AbsoluteFill style={{ background: '#000', opacity: black }} />
+      <Burst at={CUE.finalHit} x={540} y={1000} count={140} shape="star" seed="fin" colors={['#fff', C.pink, C.ice, C.lilac]} speed={60} gravity={0.03} life={60} size={14} />
+      <Burst at={CUE.finalHit} x={540} y={1000} count={90} shape="dot" seed="fin2" colors={['#fff', C.blush]} speed={80} gravity={0} life={45} />
+      <Flash at={CUE.finalHit} duration={20} x={540} y={1000} peak={1} />
+      {/* afterglow: glitter slowly settling, then one last star glint */}
+      {after > 0 && <Glitter count={60} seed="outro" drift={0.8} opacity={Math.min(1, after / 8) * (1 - outro)} size={[6, 20]} />}
+      {after > 0 && <FinalGlint after={after} />}
     </AbsoluteFill>
   );
 };

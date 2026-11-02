@@ -3,8 +3,8 @@
 
 export const FPS = 30;
 export const CLIP_START = 139.16; // s, on a beat
-export const CLIP_END = 176.26; // s, one beat after the last syllable
-export const DURATION = Math.round((CLIP_END - CLIP_START) * FPS); // 1113 frames
+export const CLIP_END = 177.89; // s, on a strong beat; leaves ~2.5 s for a soft outro
+export const DURATION = Math.round((CLIP_END - CLIP_START) * FPS); // 1162 frames
 
 // Text appears a hair before the vocal so it reads as "on" the word.
 const LEAD = 2;

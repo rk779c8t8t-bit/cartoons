@@ -10,8 +10,8 @@ import { S6Cosmos } from './scenes/S6Cosmos';
 import { S7Zodiac } from './scenes/S7Zodiac';
 import { S8Finale } from './scenes/S8Finale';
 import { C } from './theme';
-import { SCENES } from './timing';
-import { beatPulse } from './util';
+import { CUE, DURATION, SCENES } from './timing';
+import { beatPulse, easeInOut, ramp } from './util';
 
 const ORDER: Array<[keyof typeof SCENES, React.FC]> = [
   ['popstar', S1Popstar],
@@ -31,6 +31,8 @@ const ORDER: Array<[keyof typeof SCENES, React.FC]> = [
 export const ZnakVideo: React.FC = () => {
   const frame = useCurrentFrame();
   const punch = 1 + beatPulse(frame, 4) * 0.008;
+  // soft outro: fade the whole picture (overlays included) to black, last ~0.4 s fully black
+  const outro = ramp(frame, CUE.finalHit + 8, DURATION - 12, easeInOut);
   return (
     <AbsoluteFill style={{ background: C.black, overflow: 'hidden' }}>
       <Audio src={staticFile('verse.wav')} />
@@ -44,6 +46,7 @@ export const ZnakVideo: React.FC = () => {
       <Vignette strength={0.7} />
       <VHS intensity={0.8} />
       <FilmGrain opacity={0.12} />
+      <AbsoluteFill style={{ background: '#000', opacity: outro }} />
     </AbsoluteFill>
   );
 };
