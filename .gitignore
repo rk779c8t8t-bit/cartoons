@@ -1,0 +1,4 @@
+FINAL/project_files/models/*.pth
+FINAL/project_files/assets/build/
+FINAL/project_files/stills/
+__pycache__/
