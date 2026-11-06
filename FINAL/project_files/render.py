@@ -537,9 +537,9 @@ def sh_awaken(t, u, lt):
     img = over(img, person(ch, M, (lerp(-2.0, 0.5, smooth(u)), 0, 0)))
     # sweep of light
     X, Y = A["X"], A["Y"]
-    pos = lerp(-600, 1700, ease_out(u, 2))
-    band = np.exp(-(((X * 0.7 + Y * 0.5) - pos) / 420) ** 2)
-    expo = 0.30 + 0.75 * ease_out(u, 2)
+    pos = lerp(300, 1900, ease_out(u, 2))
+    band = np.exp(-(((X * 0.7 + Y * 0.5) - pos) / 520) ** 2)
+    expo = 0.6 + 0.45 * ease_out(u, 2)
     img = img * (0.35 + 0.65 * band[..., None]) * expo
     img = grade(img, "realm")
     return particles(img, t, 21, 35, (1.0, 0.8, 0.45), size=(2, 6), glow=0.7)
