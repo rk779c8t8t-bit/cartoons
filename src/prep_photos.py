@@ -57,3 +57,38 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+# ---- v3: face-only stickers (head + a bit of neck, transparent background) ----
+FACE = {
+    'eminem': [P['eminem']['fg'][0], [(170, 400), (320, 400), (330, 500), (165, 500)]],
+    'toly': [P['toly']['fg'][0], [(440, 440), (580, 430), (585, 520), (445, 525)]],
+}
+
+
+def faces():
+    for name, polys in FACE.items():
+        img = cv2.imread(os.path.join(SRC, P[name]['file']))
+        m = mask_for(img, polys)
+        # keep only within the head polygons (+ margin): no shoulders, no background
+        lim = np.zeros_like(m)
+        for p in polys:
+            cv2.fillPoly(lim, [np.array(p, np.int32)], 255)
+        lim = cv2.dilate(lim, np.ones((11, 11), np.uint8))
+        m = cv2.bitwise_and(m, lim)
+        # fade the neck out at the bottom
+        ys = np.where(m.max(1) > 0)[0]
+        y1 = ys.max()
+        fade = np.clip((y1 - np.arange(m.shape[0])) / 40.0, 0, 1)
+        m = (m * fade[:, None]).astype(np.uint8)
+        xs = np.where(m.max(0) > 0)[0]
+        x0, x1, y0 = max(0, xs.min() - 6), xs.max() + 6, max(0, ys.min() - 6)
+        img, m = img[y0:y1 + 1, x0:x1 + 1], m[y0:y1 + 1, x0:x1 + 1]
+        img = cv2.resize(img, None, fx=2, fy=2, interpolation=cv2.INTER_LANCZOS4)
+        m = cv2.GaussianBlur(cv2.resize(m, None, fx=2, fy=2, interpolation=cv2.INTER_LINEAR), (0, 0), 1.2)
+        cv2.imwrite(os.path.join(OUT, f'{name}_face.png'), np.dstack([img, m]))
+        print(name, 'face', img.shape)
+
+
+if __name__ == '__main__':
+    faces()
