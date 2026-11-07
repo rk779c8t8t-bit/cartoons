@@ -3,7 +3,9 @@
 **Новейшая версия (v3, «огненный» лирик-стиль):** `output/eminem_toly_fire.mp4` — 1080×1920, 60 fps, 15 с.
 Стиль по `assets/src/style_reference_v3.mov`: чёрный фон, широкий шрифт Unbounded Black (OFL, `assets/fonts/`),
 белый текст с оранжевым 3D-краем, ключевые слова горят, слова сгорают искрами, эмодзи-стикеры.
-Лица — оригинальные вырезы без фона (`assets/photos/*_face.png`), двигаются только целиком.
+Без лиц: вместо них — 3D-эмодзи Fluent (Microsoft, MIT, `assets/emoji3d/`), подобранные по смыслу слов и сменяющиеся в такт
+(ГОРИ → 🔥, Я ГОРЮ → ❤️‍🔥, ТОЖЕ → 💥, NOW → ⏰, JOB → 💼, FOR ME → 🦸, EVERYBODY → 🙌 💃 🕺, FOLLOW ME → 🏃 ➡️,
+A LITTLE → 🤏, CONTROVERSY → 😈 💣 ⚡, EMPTY → 💨 🕳️, WITHOUT → 💔, ME → 🎤, финал → 🎤 👑 🔥).
 Код: `src/fire_edit.py`. Пересборка: `python3 src/prep_photos.py && FPS=60 MOD=fire_edit OUT=eminem_toly_fire.mp4 python3 src/render.py`
 
 ---

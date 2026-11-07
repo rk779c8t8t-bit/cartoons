@@ -1,0 +1,2 @@
+Fluent Emoji 3D (Microsoft, MIT License) via npm package @lobehub/fluent-emoji-3d.
+https://github.com/microsoft/fluentui-emoji

@@ -2,8 +2,8 @@
 
 Style of style_reference_v3.mov: pure black, very wide heavy type (Unbounded Black),
 white words with an orange 3D edge, key words burning orange with glow, sparks,
-words burning away, emoji stickers. The two faces are original-photo cut-outs with no
-background, used as stickers that move only as a whole (never altered).
+words burning away, emoji stickers. No faces: pictures are Fluent 3D emoji
+(assets/emoji3d, MIT) chosen to match the meaning of each word, swapping on the beat.
 
 Timeline (s): 0 intro | 2.05 Toly | 4.45 L1 | 6.55 L2 | 8.55 L3 | 10.55 L4 | 12.58 finale | 15.0
 """
@@ -52,7 +52,23 @@ def _load_rgba(path):
     return skia.Image.fromarray(cv2.cvtColor(a, cv2.COLOR_BGRA2RGBA), colorType=skia.kRGBA_8888_ColorType).withDefaultMipmaps()
 
 
-FACE = {n: _load_rgba(os.path.join(ROOT, 'assets', 'photos', f'{n}_face.png')) for n in ('toly', 'eminem')}
+from PIL import Image as _PIL
+E3D = {}
+
+
+def e3d(code):
+    """Fluent 3D emoji (256 px webp) -> skia image, upscaled once with Lanczos for large display."""
+    if code not in E3D:
+        im = _PIL.open(os.path.join(ROOT, 'assets', 'emoji3d', f'{code}.webp')).convert('RGBA')
+        im = im.resize((512, 512), _PIL.LANCZOS)
+        E3D[code] = skia.Image.fromarray(np.asarray(im).copy(), colorType=skia.kRGBA_8888_ColorType).withDefaultMipmaps()
+    return E3D[code]
+
+
+FIRE, HEART_FIRE, BOOM, CLOCK, CASE, HERO, MIC = '1f525', '2764-fe0f-200d-1f525', '1f4a5', '23f0', '1f4bc', '1f9b8', '1f3a4'
+DANCE_M, DANCE_W, RAISE, STEPS, ARROW, PINCH, DEVIL, BOMB = '1f57a', '1f483', '1f64c', '1f3c3', '27a1-fe0f', '1f90f', '1f608', '1f4a3'
+ZAP, HOLE, DASH, BROKEN, CROWN, SPARK, COOL, HORN = '26a1', '1f573-fe0f', '1f4a8', '1f494', '1f451', '2728', '1f60e', '1f4e2'
+
 EMO = {}
 
 
@@ -332,6 +348,25 @@ B_FIN = Lyric([[W_('TOLY', FIN + 0.35, 'white', 0.85, 'pop'), W_('SUMMER', FIN +
 
 
 # ------------------------------------------------------------------ frame
+def pic(c, t, code, cx, cy, h, t0, t1=None, rot=0.0, glow=0.45, bob=True, dur_out=0.18):
+    """A 3D emoji picture that pops in at t0, lives on the beat and pops out at t1 (moves only as a whole)."""
+    sc = pop(t, t0, t1, dur_out=dur_out)
+    if sc <= 0.001:
+        return
+    if bob:
+        cy += -beat_pulse(t, 8) * 16 + math.sin(t * 2.3 + cx * 0.01) * 10
+        rot += math.sin(t * 1.9 + cy * 0.01) * 5 + beat_pulse(t, 9) * 4 * (1 if int(t / 0.5) % 2 else -1)
+        sc *= 1 + 0.06 * beat_pulse(t, 10)
+    sprite(c, e3d(code), cx, cy, h * sc, rot, 1.0, glow, '#ff7a2a')
+
+
+def hero(c, t, seq, t_end, cx, cy, h, rot=0.0):
+    """Main picture that swaps on the words: seq = [(t0, code), ...]."""
+    for k, (t0, code) in enumerate(seq):
+        t1 = seq[k + 1][0] - 0.02 if k + 1 < len(seq) else t_end
+        pic(c, t, code, cx, cy, h, t0, t1, rot=rot, glow=0.55, dur_out=0.1)
+
+
 def render(t):
     surf = skia.Surface(W, H)
     c = surf.getCanvas()
@@ -342,58 +377,62 @@ def render(t):
     c.save()
     cam(c, 1.0 + 0.025 * beat_pulse(t, 9), rot=rr * 12 + 1.2 * math.sin(t * 0.6), dx=dx, dy=dy)
 
-    # ---------- intro: a single flame breathing in the dark, Toly's face rises out of the glow
-    if t < 2.4:
-        fl = pop(t, 0.05, 2.0)
-        sprite(c, emoji_img('🔥'), W / 2, 960 - 30 * e_in(prog(t, 1.4, 2.0)),
-               lerp(120, 260, prog(t, 0, 2.0)) * fl * (1 + 0.18 * math.exp(-max(0, t - 1.03) * 7) * (t > 1.03)),
-               math.sin(t * 7) * 3, 1, 0.9 + 0.1 * math.sin(t * 20))
-        c.drawCircle(W / 2, 960, 500, P('#ffffff', shader=rad(W / 2, 960, 500, [C('#ff5a10', 0.28 * fl), C('#ff5a10', 0)]), blend=ADD))
-    # ---------- Toly 2.05 - 4.45
-    face(c, t, 'toly', W / 2, 560, 760, 1.75, 4.42, glow=0.9)
-    emoji(c, t, '🔥', 170, 330, 170, TG[0], 4.42, rot=-12)
-    emoji(c, t, '❤', W / 2, 1680, 210, TG[3], 4.42)
+    # ---------- intro: one flame breathing in the dark, pulsing on the two heartbeats
+    if t < 2.3:
+        fl = pop(t, 0.05, 2.0, dur_in=0.5)
+        hb = 0.18 * math.exp(-max(0, t - 1.03) * 7) * (t > 1.03) + 0.12 * math.exp(-t * 7)
+        sprite(c, e3d(FIRE), W / 2, 960, lerp(200, 520, e_in(prog(t, 0, 2.0))) * fl * (1 + hb),
+               math.sin(t * 7) * 3, 1, 0.9)
+        c.drawCircle(W / 2, 960, 560, P('#ffffff', shader=rad(W / 2, 960, 560, [C('#ff5a10', 0.3 * fl), C('#ff5a10', 0)]), blend=ADD))
+    # ---------- Toly: burn -> burning heart -> explosion
+    hero(c, t, [(TG[0], FIRE), (TG[2], HEART_FIRE), (TG[3], BOOM)], 4.42, W / 2, 560, 440)
+    pic(c, t, FIRE, 170, 330, 150, TG[1], 4.42, rot=-14)
+    pic(c, t, FIRE, 910, 360, 130, TG[2], 4.42, rot=12)
+    pic(c, t, SPARK, W / 2, 1700, 170, TG[3], 4.42)
     B_TOLY.draw(c, t, burn_t=4.40)
-    # ---------- Eminem L1 4.45 - 6.55
-    face(c, t, 'eminem', 720, 520, 720, 4.50, 6.42, rot=6)
-    emoji(c, t, '🎤', 220, 470, 190, E1[1], 6.4, rot=-20)
+    # ---------- L1: NOW -> alarm clock, JOB -> briefcase, FOR ME -> superhero
+    hero(c, t, [(E1[0], CLOCK), (E1[5], CASE), (E1[7], HERO)], 6.42, 720, 520, 460, rot=6)
+    pic(c, t, MIC, 220, 470, 190, E1[1], 6.4, rot=-20)
     B_L1a.draw(c, t, burn_t=6.36)
     B_L1b.draw(c, t, burn_t=6.40)
-    # ---------- L2 6.55 - 8.55: face leads, the words follow it
+    # ---------- L2: everybody -> crowd, follow me -> footsteps walking across
     if 6.45 < t < 8.7:
-        fol = e_io(prog(t, E2[3], 8.40))
-        fx = lerp(W / 2, 300, e_out(prog(t, 6.5, 6.8)))
-        fx = lerp(fx, 790, fol)
-        face(c, t, 'eminem', fx, lerp(470, 430, fol), 620, 6.50, 8.44, rot=lerp(-6, 8, fol))
-        for k, ch_ in enumerate(['🙌', '👥', '🙌']):
-            emoji(c, t, ch_, 180 + k * 360, 1760, 140, E2[1] + k * 0.06, 8.42)
+        hero(c, t, [(E2[0], RAISE)], 8.44, W / 2, 470, 440)
+        for k, code in enumerate([DANCE_M, DANCE_W, DANCE_M]):
+            pic(c, t, code, 180 + k * 360, 1790, 190, E2[1] + k * 0.07, 8.42, rot=(k - 1) * 8)
+        fol = prog(t, E2[3], 8.42)
+        for k in range(4):   # runners join the line one after another, following the arrow
+            tk = E2[3] + k * 0.11
+            run = 60 * prog(t, tk, 8.42)
+            pic(c, t, STEPS, 130 + k * 210 + run, 1560 - (k % 2) * 30, 160, tk, 8.42, rot=-4, bob=False)
+        pic(c, t, ARROW, 980, 1540, 140, E2[4], 8.42, bob=False)
     B_L2.draw(c, t, burn_t=8.40, drift=(lerp(0, 40, prog(t, E2[3], 8.4)), 0))
-    # ---------- L3 8.55 - 10.55
+    # ---------- L3: "a little" -> pinching hand, controversy -> devil + bomb + lightning
     if 8.45 < t < 10.7:
-        face(c, t, 'eminem', W / 2, 400, 560, 8.50, 10.45, rot=-4)
-        emoji(c, t, '😈', 900, 640, 160, E3[5], 10.45, rot=12)
-        emoji(c, t, '😎', 170, 1680, 150, E3[2], 10.45, rot=-10)
+        hero(c, t, [(E3[0], HORN), (E3[3], PINCH), (E3[5], DEVIL)], 10.45, W / 2, 400, 440, rot=-4)
+        pic(c, t, BOMB, 170, 1700, 170, E3[5] + 0.05, 10.45, rot=-12)
+        pic(c, t, ZAP, 900, 1660, 170, E3[5] + 0.12, 10.45, rot=10)
     B_L3a.draw(c, t, burn_t=10.40)
     jit = (rnd(int(t * 30), 3) - 0.5) * 18 * (1 - prog(t, E3[5], E3[5] + 0.5)) * (t > E3[5])
     B_L3b.draw(c, t, burn_t=10.42, drift=(jit, 0), scale=1 + 0.08 * beat_pulse(t, 8))
-    # ---------- L4 10.55 - 12.58: the face shrinks into emptiness, then fills the frame on "ME"
+    # ---------- L4: empty -> hole + gust of wind, without me -> broken heart, ME -> the mic, huge
     if 10.5 < t < FIN + 0.1:
         big = e_out(prog(t, E4[6] - 0.02, E4[6] + 0.12))
-        h = lerp(lerp(560, 330, e_out(prog(t, 10.6, E4[5]))), 760, big)
-        face(c, t, 'eminem', W / 2, lerp(440, 520, big), h, 10.55, FIN - 0.05, glow=0.6 + 0.4 * big)
-        emoji(c, t, '💨', 820, 1080, 130, E4[4], E4[5])
+        hero(c, t, [(E4[2], DASH), (E4[4], HOLE), (E4[5], BROKEN)], E4[6] - 0.02, W / 2, 440,
+             lerp(420, 300, e_out(prog(t, 10.6, E4[5]))))
+        pic(c, t, MIC, W / 2, 500, 620, E4[6], FIN - 0.05, rot=-8, glow=0.8)
+        pic(c, t, DASH, 860, 1080, 140, E4[4] + 0.1, E4[5])
     B_L4a.draw(c, t, burn_t=E4[5] - 0.05)
     B_L4b.draw(c, t, burn_t=FIN - 0.08)
-    # ---------- finale: both faces, title, everything burns out
+    # ---------- finale: crown over the mic, flames around, title, everything burns out
     if t >= FIN - 0.05:
         end = 14.25
-        face(c, t, 'toly', 300, 720, 600, FIN, end, rot=-7)
-        face(c, t, 'eminem', 790, 700, 600, FIN + 0.12, end + 0.08, rot=7)
-        for k, (x, y, r) in enumerate([(120, 330, -15), (960, 300, 14), (W / 2, 1830, 0)]):
-            emoji(c, t, '🔥', x, y, 140 + 30 * (k == 2), FIN + 0.2 + k * 0.1, end, rot=r)
+        pic(c, t, MIC, W / 2, 760, 560, FIN, end, rot=-10, glow=0.8)
+        pic(c, t, CROWN, W / 2 + 30, 400, 300, FIN + 0.25, end + 0.05, rot=8)
+        for k, (x, y, r) in enumerate([(150, 640, -15), (930, 620, 14), (W / 2, 1830, 0)]):
+            pic(c, t, FIRE, x, y, 190 + 20 * (k == 2), FIN + 0.15 + k * 0.1, end, rot=r)
         B_FIN.draw(c, t, burn_t=end)
     c.restore()
-    # flashes on the big hits
     for h_, a_ in ((2.05, 0.55), (E4[6], 0.35), (FIN, 0.6)):
         c.drawRect(skia.Rect(0, 0, W, H), P('#ffb070', a_ * (1 - prog(t, h_, h_ + 0.25)) * (t >= h_), blend=ADD))
     c.drawRect(skia.Rect(0, 0, W, H), P('#000000', e_in(prog(t, 14.55, 14.95))))
