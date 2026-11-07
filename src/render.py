@@ -1,15 +1,22 @@
-"""Render all frames in parallel and mux with the soundtrack -> output/eminem_toly_animated.mp4"""
+"""Render all frames in parallel and mux with the soundtrack.
+
+Usage:  FPS=60 MOD=edit OUT=eminem_toly_final.mp4 python3 src/render.py   (v2 photo edit, default)
+        FPS=30 MOD=scenes OUT=eminem_toly_animated.mp4 python3 src/render.py (v1)
+"""
 import os, sys, subprocess, time
 from multiprocessing import Pool
 import numpy as np, cv2, skia
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from core import ROOT, W, H, FPS, DUR
 
-FR = os.path.join(ROOT, 'renders', 'frames')
+MOD = os.environ.get('MOD', 'edit')
+OUT = os.environ.get('OUT', 'eminem_toly_final.mp4')
+FR = os.path.join(ROOT, 'renders', f'frames_{MOD}_{FPS}')
 
 
 def work(i):
-    import scenes
+    import importlib
+    scenes = importlib.import_module(MOD)
     out = os.path.join(FR, f'{i:05d}.png')
     if os.path.exists(out):
         return i
@@ -33,5 +40,5 @@ if __name__ == '__main__':
                     '-i', os.path.join(ROOT, 'renders', 'soundtrack.wav'),
                     '-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-pix_fmt', 'yuv420p', '-profile:v', 'high',
                     '-c:a', 'aac', '-b:a', '256k', '-shortest', '-movflags', '+faststart',
-                    os.path.join(ROOT, 'output', 'eminem_toly_animated.mp4')], check=True)
+                    os.path.join(ROOT, 'output', OUT)], check=True)
     print('done', round(time.time() - t0), 's')

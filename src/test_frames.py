@@ -1,6 +1,7 @@
 import sys, time
 sys.path.insert(0, 'src')
-import scenes, skia
+import skia, importlib, os
+scenes = importlib.import_module(os.environ.get("MOD", "scenes"))
 from PIL import Image
 import numpy as np
 S = '/tmp/claude-0/-home-user-cartoons/e3564bd2-6e7b-5487-9175-5649ed9eb08c/scratchpad/'

@@ -4,7 +4,7 @@ import numpy as np
 import skia
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-W, H, FPS = 1080, 1920, 30
+W, H, FPS = 1080, 1920, int(os.environ.get("FPS", 60))
 T = json.load(open(os.path.join(ROOT, 'assets', 'timing.json')))
 PRE = T['pre']
 DUR = T['dur']
