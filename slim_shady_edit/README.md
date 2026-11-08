@@ -8,3 +8,8 @@ Vertical 1080×1920, 60 fps, H.264 + AAC 320k, 23.3 s. Result: `output/eminem_sl
 
 Sync: word timestamps from offline ASR (sherpa-onnx zipformer) cross-checked with vocal onsets; tempo ≈103.4 BPM.
 Requires: numpy, opencv-python-headless, pillow, librosa, soundfile, scipy, ffmpeg.
+
+## Jon Lajoie — Everyday Normal Guy 2
+
+`EDIT=scenes_normal python render.py audio|sheet|video` → `output/everyday_normal_guy_lyric_edit.mp4`
+(+ `_no_audio.mp4` for adding the song from TikTok's sound library). Track segment 1:07.52–1:28.84.

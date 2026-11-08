@@ -14,7 +14,13 @@ import cv2
 import numpy as np
 
 from engine import H, W
-from scenes import T_AUDIO_END, T_END, T_START, render
+import importlib
+import os
+
+_edit = importlib.import_module(os.environ.get("EDIT", "scenes"))
+T_START, T_AUDIO_END, T_END, render = _edit.T_START, _edit.T_AUDIO_END, _edit.T_END, _edit.render
+ECHO_FROM = getattr(_edit, "ECHO_FROM", 39.66)
+NAME = getattr(_edit, "OUT_NAME", "eminem_slim_shady_lyric_edit")
 
 OUT = Path(__file__).parent / "build"
 OUT.mkdir(exist_ok=True)
@@ -34,14 +40,14 @@ def build_audio(src):
     fo = int(0.06 * SR)
     a[:, -fo:] *= np.linspace(1, 0, fo) ** 2
     # echo tail of the last word ("Shady") so the edit ends cleanly
-    seg = y[:, int(39.66 * SR):int(T_AUDIO_END * SR)].copy()
+    seg = y[:, int(ECHO_FROM * SR):int(T_AUDIO_END * SR)].copy()
     seg[:, -fo:] *= np.linspace(1, 0, fo) ** 2
     seg[:, :fi] *= np.linspace(0, 1, fi)
     total = int((T_END - T_START) * SR)
     out = np.zeros((2, total), np.float32)
     out[:, :a.shape[1]] = a
-    delay = 0.29
-    s0 = int((39.66 - T_START) * SR)
+    delay = getattr(_edit, "ECHO_DELAY", 0.29)
+    s0 = int((ECHO_FROM - T_START) * SR)
     lp = seg
     for k, g in enumerate((0.42, 0.26, 0.15, 0.08), 1):
         # darker each repeat (one-pole low-pass)
@@ -57,7 +63,7 @@ def build_audio(src):
     fade = int(0.35 * SR)
     out[:, -fade:] *= np.linspace(1, 0, fade)
     import soundfile as sf
-    sf.write(OUT / "audio.wav", out.T, SR, subtype="PCM_24")
+    sf.write(OUT / f"{NAME}.wav", out.T, SR, subtype="PCM_24")
     print("audio", out.shape[1] / SR, "s")
 
 
@@ -72,9 +78,9 @@ def frame_at(args):
 
 def video(fps=60):
     n = int(round((T_END - T_START) * fps))
-    out = OUT / "eminem_slim_shady_lyric_edit.mp4"
+    out = OUT / f"{NAME}.mp4"
     cmd = ["ffmpeg", "-y", "-v", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
-           "-r", str(fps), "-i", "-", "-i", str(OUT / "audio.wav"),
+           "-r", str(fps), "-i", "-", "-i", str(OUT / f"{NAME}.wav"),
            "-c:v", "libx264", "-preset", "slow", "-crf", "19", "-pix_fmt", "yuv420p",
            "-profile:v", "high", "-c:a", "aac", "-b:a", "320k", "-ar", "44100",
            "-movflags", "+faststart", "-shortest", str(out)]
@@ -87,6 +93,9 @@ def video(fps=60):
     p.stdin.close()
     p.wait()
     print("wrote", out)
+    # silent copy: add the track from TikTok's sound library instead
+    subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", str(out), "-c:v", "copy", "-an",
+                    str(OUT / f"{NAME}_no_audio.mp4")], check=True)
 
 
 def sheet(times, cols=6):
@@ -99,7 +108,7 @@ def sheet(times, cols=6):
     while len(tiles) % cols:
         tiles.append(np.zeros_like(tiles[0]))
     rows = [np.hstack(tiles[i:i + cols]) for i in range(0, len(tiles), cols)]
-    cv2.imwrite(str(OUT / "sheet.png"), cv2.cvtColor(np.vstack(rows), cv2.COLOR_RGB2BGR))
+    cv2.imwrite(str(OUT / f"{NAME}_sheet.png"), cv2.cvtColor(np.vstack(rows), cv2.COLOR_RGB2BGR))
 
 
 if __name__ == "__main__":
