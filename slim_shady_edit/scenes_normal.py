@@ -14,9 +14,9 @@ T_END = 89.95
 ECHO_FROM = 88.26     # "Ghostbusters"
 ECHO_DELAY = 0.335    # half a beat at 89 BPM
 OUT_NAME = "everyday_normal_guy_lyric_edit"
-MF = "MOTHERF*CKER"
+MF = "MOTHER*UCKER"
 # "-fucker" spans to remove from the vocal band in the audio
-CENSOR = [(76.40, 76.87), (80.38, 80.76), (85.68, 86.06)]
+CENSOR = []   # audio left uncensored
 
 
 def slam(t, t0, frm=1.6, d=0.11):
@@ -203,10 +203,10 @@ def sG(F, t):
             s = fit("MOTHER-", 960)
             sc, al = slam(t, 76.16, 2.2, 0.1)
             F.text("MOTHER-", s, 540, 900, CREAM, sc=sc, alpha=al, rot=-3)
-            s2 = fit("F*CKER,", 960)
+            s2 = fit("*UCKER,", 960)
             sc, al = slam(t, 76.40, 2.2, 0.1)
             if vis(t, 76.40):
-                F.text("F*CKER,", s2, 540, 1290, CREAM, sc=sc, alpha=al, rot=3)
+                F.text("*UCKER,", s2, 540, 1290, CREAM, sc=sc, alpha=al, rot=3)
             F.flash(FLASH, 0.5 * (1 - ph(t, 76.16, 0.06)))
         return
     rows = lay([["YOU", "HEARD"], ["WHAT", "I"], ["JUST", "SAID"]],
