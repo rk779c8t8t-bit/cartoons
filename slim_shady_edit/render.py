@@ -60,6 +60,19 @@ def build_audio(src):
         en = min(total, st + lp.shape[1])
         if st < total:
             out[:, st:en] += g * lp[:, :en - st]
+    # censor: strip the vocal band (keep bass + highs) over the listed spans
+    from scipy.signal import butter, sosfiltfilt
+    lo = butter(4, 220, "lowpass", fs=SR, output="sos")
+    hi = butter(4, 7000, "highpass", fs=SR, output="sos")
+    xf = int(0.015 * SR)
+    for c0, c1 in getattr(_edit, "CENSOR", []):
+        a0, a1 = int((c0 - T_START) * SR) - xf, int((c1 - T_START) * SR) + xf
+        seg = out[:, a0:a1]
+        kept = (sosfiltfilt(lo, seg, axis=1) + 0.5 * sosfiltfilt(hi, seg, axis=1)).astype(np.float32)
+        w = np.ones(a1 - a0, np.float32)
+        w[:xf] = np.linspace(0, 1, xf)
+        w[-xf:] = np.linspace(1, 0, xf)
+        out[:, a0:a1] = seg * (1 - w) + kept * w
     fade = int(0.35 * SR)
     out[:, -fade:] *= np.linspace(1, 0, fade)
     import soundfile as sf
