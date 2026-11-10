@@ -1,6 +1,6 @@
 # «Гикаю» — анимированный клип (кинетическая 3D-типографика)
 
-Готовый ролик: **`out/gikayu_clip_1080p.mp4`** — 1920×1080, 16:9, 30 fps, H.264 + AAC 320 kbps, 36.08 с.
+Готовый ролик: **`out/gikayu_clip_1080p.mp4`** — 1920×1080, 16:9, 30 fps, H.264 18 Мбит/с (2 прохода) + AAC 320 kbps, 36.08 с, 84 МБ.
 
 Фрагмент песни: **54.80 → 90.88 с** оригинального MP3. Он начинается в тихом брейке перед «Ты слушаешь»
 (бас-дроп приходится ровно на «ХУ*НЮ», 58.04 с) и заканчивается в конце секции, где пропадает бас.
@@ -57,7 +57,7 @@ ffmpeg -i "Платина – Гикаю.mp3" -af "atrim=start=54.8:end=90.88,as
 # видео (≈1 ч на 4 ядрах без GPU)
 node render/render.mjs --fps 30 --sub 4 --workers 1 --out out/video_noaudio.mp4
 # сборка
-ffmpeg -i out/video_noaudio.mp4 -i out/audio.m4a -map 0:v -map 1:a -c:v libx264 -preset slow -crf 15 -pix_fmt yuv420p -c:a copy -movflags +faststart -shortest out/gikayu_clip_1080p.mp4
+ffmpeg -i out/video_noaudio.mp4 -i out/audio.m4a -map 0:v -map 1:a -c:v libx264 -preset slow -b:v 18M -pix_fmt yuv420p -c:a copy -movflags +faststart -shortest out/gikayu_clip_1080p.mp4
 ```
 
 Быстрые стоп-кадры: `node render/render.mjs --stills 3.7,18.4 --scale 0.5` (время от начала клипа).
