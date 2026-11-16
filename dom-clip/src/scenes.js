@@ -8,13 +8,14 @@ const clr = c => { const g = cx2(c); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRe
 
 // ---------------- INTRO: world clocks ----------------
 function scIntro(g, t) {
-  const a1 = sstep(.3, 1.3, t) * (1 - sstep(2.3, 3.0, t));
+  const a1 = sstep(START + .2, START + 1.1, t) * (1 - sstep(14.2, 14.8, t));
   if (a1 > 0) {
     g.globalAlpha = a1;
     text(g, 'MORGENSHTERN', 540, 930, font(500, 30, 'JetBrains Mono'), 'rgba(255,255,255,0.7)', 'center', 14);
     glowText(g, 'ДОМ', 540, 1030, font(800, 76, 'Inter Display'), C.white, hexA(C.cyan, .7), 30, 'center', 34);
     g.globalAlpha = 1;
   }
+  return; // clocks card dropped: intro is now only 3 s
   const ca = eOC(inv(2.7, 3.6, t)); if (ca <= 0) return;
   g.globalAlpha = ca; g.translate(0, (1 - ca) * 50);
   const { x, y, w, h } = CARD;
@@ -528,13 +529,13 @@ function scHome(t0, domT, final) {
   return (g, t) => {
     const L = ART.land, [hx, hy] = L.house;
     const lt = t - t0;
-    let z = final ? lerp(1.55, 1.0, eIOC(inv(t0 + 2.2, t0 + 9.5, t))) : lerp(1.32, 1.22, inv(t0, t0 + 6, t));
+    let z = final ? lerp(1.5, 1.0, eIOC(inv(t0 + 1.2, END, t))) : lerp(1.32, 1.22, inv(t0, t0 + 6, t));
     const fy = hy - 140;
     const lay = (img, f) => { g.save(); g.translate(540, fy); g.scale(1 + (z - 1) * f, 1 + (z - 1) * f); g.translate(-540, -fy); g.drawImage(img, 0, 0); g.restore(); };
     lay(L.sky, .3); lay(L.h1, .6); lay(L.h2, .8);
     g.save(); g.translate(540, fy); g.scale(z, z); g.translate(-540, -fy);
     g.drawImage(L.near, 0, 0);
-    const fadeOut = final ? 1 - sstep(151.2, 152.8, t) * .85 : 1;
+    const fadeOut = final ? 1 - sstep(END - 1.0, END - .1, t) * .6 : 1;
     houseWindows(g, hx, hy, (.85 + .15 * Math.sin(t * 2.3)) * fadeOut, .7 + .3 * noise1(t * 3));
     for (let i = 0; i < 6; i++) { const a = ((t * .35 + i / 6) % 1); g.fillStyle = `rgba(200,210,230,${.045 * Math.sin(Math.PI * a)})`; g.beginPath(); g.arc(hx + 53 + a * 40 + Math.sin(a * 6 + i) * 10, hy - 230 - a * 200, 16 + a * 40, 0, 7); g.fill(); }
     g.restore();
@@ -550,7 +551,7 @@ function scHome(t0, domT, final) {
       g.save(); g.translate(x, y); if (side < 0) g.scale(-1, 1); bird(g, 0, 0, s, t * 10 + i, '#05060b', clamp((1 - u) * 5)); g.restore();
     }
     // ДОМ
-    const dk = eOC(inv(domT, domT + 1.4, t)) * (final ? 1 - sstep(150.6, 151.8, t) : 1 - sstep(72.6, 73.5, t));
+    const dk = eOC(inv(domT, domT + 1.4, t)) * (final ? 1 : 1 - sstep(72.6, 73.5, t));
     if (dk > 0) { g.globalAlpha = dk; glowText(g, 'ДОМ', 540, 900 - 30 * dk, font(300, 150, 'Inter Display'), '#fff3df', hexA(C.warm, .9), 50, 'center', lerp(80, 50, dk)); g.globalAlpha = 1; }
     if (final) {
       const ek = sstep(151.4, 152.3, t) * (1 - sstep(153.1, 153.6, t));
@@ -788,7 +789,7 @@ function scGlobeEmpty(g, t) {
 
 // ---------------- timeline ----------------
 function buildTimeline() {
-  S(0, 14.9, scIntro, { tin: 0, fin: 'cut', tout: .45, fout: 'blur', acc: C.cyan });
+  S(START, 14.9, scIntro, { tin: 0, fin: 'cut', tout: .45, fout: 'blur', acc: C.cyan });
   S(14.55, 23.15, scDom, { tin: .1, fin: 'fade', tout: .3, acc: C.amber });
   S(22.95, 26.75, scGlobe, { tin: .45, fin: 'zoomin', tout: .3, fout: 'zoom', acc: C.cyan });
   S(26.45, 29.95, scAirport, { tin: .3, fin: 'blur', tout: .3, acc: C.blue });

@@ -33,8 +33,8 @@ function drawDust(g, t, e) {
   }
 }
 
-function renderFrame(t) {
-  const g = ctx;
+function renderFrame(tl) {
+  const t = tl + START, g = ctx;
   g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; g.filter = 'none';
   g.fillStyle = lingrad(g, 0, 0, 0, H, [[0, '#060912'], [.5, '#080c18'], [1, '#04050a']]); g.fillRect(0, 0, W, H);
   const act = []; for (const s of SC) if (t >= s.a && t <= s.b) act.push([s, trans(s, t)]);
@@ -68,12 +68,12 @@ function renderFrame(t) {
   g.fillStyle = lingrad(g, 0, 1560, 0, H, [[0, 'rgba(3,4,8,0)'], [1, 'rgba(3,4,8,0.92)']]); g.fillRect(0, 1560, W, H - 1560);
   g.drawImage(ART.vignette, 0, 0);
   drawLyrics(g, t);
-  const hudA = sstep(.6, 2.0, t) * (1 - sstep(150.8, 151.8, t));
+  const hudA = sstep(START + .3, START + 1.2, t) * (1 - sstep(END - 1.3, END - .5, t));
   if (hudA > 0) { g.globalAlpha = hudA; drawPlayer(g, t); g.globalAlpha = 1; }
   // grain
   g.save(); g.globalAlpha = .07; g.globalCompositeOperation = 'overlay'; g.drawImage(ART.grain[Math.floor(t * FPS) % 3], 0, 0, W, H); g.restore();
   // global fades
-  const fade = Math.max(1 - sstep(0, .9, t), sstep(DUR - .5, DUR, t));
+  const fade = Math.max(1 - sstep(START, START + .5, t), sstep(END - .75, END, t));
   if (fade > 0) { g.fillStyle = `rgba(0,0,0,${fade})`; g.fillRect(0, 0, W, H); }
 }
 

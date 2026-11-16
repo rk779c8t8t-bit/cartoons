@@ -82,12 +82,12 @@ function drawPlayer(g, t) {
   g.save();
   text(g, 'Дом', x0, y, font(700, 38), C.white, 'left');
   text(g, 'MORGENSHTERN', x0, y + 42, font(500, 26), 'rgba(255,255,255,0.5)', 'left', 1);
-  const by = y + 92; const p = clamp(t / DUR);
+  const by = y + 92; const p = clamp((t - START) / LEN);
   rr(g, x0, by - 3, x1 - x0, 6, 3); g.fillStyle = 'rgba(255,255,255,0.18)'; g.fill();
   rr(g, x0, by - 3, (x1 - x0) * p, 6, 3); g.fillStyle = 'rgba(255,255,255,0.92)'; g.fill();
   g.fillStyle = C.white; g.beginPath(); g.arc(x0 + (x1 - x0) * p, by, 9, 0, 7); g.fill();
   const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
-  text(g, fmt(t), x0, by + 46, font(500, 24, 'JetBrains Mono'), 'rgba(255,255,255,0.5)', 'left');
-  text(g, fmt(DUR), x1, by + 46, font(500, 24, 'JetBrains Mono'), 'rgba(255,255,255,0.5)', 'right');
+  text(g, fmt(Math.max(0, t - START)), x0, by + 46, font(500, 24, 'JetBrains Mono'), 'rgba(255,255,255,0.5)', 'left');
+  text(g, fmt(LEN), x1, by + 46, font(500, 24, 'JetBrains Mono'), 'rgba(255,255,255,0.5)', 'right');
   g.restore();
 }

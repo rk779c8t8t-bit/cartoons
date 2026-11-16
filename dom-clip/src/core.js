@@ -1,6 +1,8 @@
 'use strict';
 // ---------- constants ----------
 const W = 1080, H = 1920, FPS = 30, DUR = 153.6;
+const START = 11.82, END = 148.9; // edit: 3 s intro, ends on the last "домой"
+const LEN = END - START;
 const BPM = 134.2, BEAT = 60 / BPM, PH = 0.22; // beat grid measured from the track
 
 const C = {
